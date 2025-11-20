@@ -5,18 +5,46 @@ const supabase = require('../config/supabase');
 // GET /v1/group_messages - List all group messages
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    // First, try to get messages without joins
+    const { data: messages, error: messagesError } = await supabase
       .from('group_messages')
-      .select(`
-        *,
-        group:groups(group_id, name, sport),
-        user:profiles(user_id, display_name, email)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (messagesError) {
+      console.error('Error fetching messages:', messagesError);
+      throw messagesError;
+    }
 
-    res.status(200).json(data);
+    // If no messages, return empty array
+    if (!messages || messages.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Get unique group IDs and user IDs
+    const groupIds = [...new Set(messages.map(m => m.group_id))];
+    const userIds = [...new Set(messages.map(m => m.user_id))];
+
+    // Fetch groups
+    const { data: groups } = await supabase
+      .from('groups')
+      .select('group_id, name, sport')
+      .in('group_id', groupIds);
+
+    // Fetch users
+    const { data: users } = await supabase
+      .from('profiles')
+      .select('user_id, display_name, email')
+      .in('user_id', userIds);
+
+    // Map groups and users to messages
+    const formattedData = messages.map(msg => ({
+      ...msg,
+      group: groups?.find(g => g.group_id === msg.group_id) || null,
+      user: users?.find(u => u.user_id === msg.user_id) || null
+    }));
+
+    res.status(200).json(formattedData);
   } catch (error) {
     console.error('Error fetching group messages:', error);
     res.status(500).json({ error: error.message });
