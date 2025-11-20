@@ -1,0 +1,266 @@
+openapi: 3.1.0
+info:
+  title: Fans at Chico State API
+  description: |
+    Mobile-first web app API to manage events, venues, fan groups, RSVPs, and user accounts. 
+    The client communicates only with this API; direct DB access is forbidden.
+  version: 1.0.0
+servers:
+  - url: https://api.fansatchicostate.com/v1
+    description: Production server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+components:
+  schemas:
+    Profile:
+      type: object
+      required: [user_id, email]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        email_verified:
+          type: boolean
+        display_name:
+          type: string
+        bio:
+          type: string
+        major:
+          type: string
+        hometown:
+          type: string
+        dob:
+          type: string
+          format: date
+        profile_photo_url:
+          type: string
+          format: uri
+        followed_team_events:
+          type: boolean
+        trending_opt_in:
+          type: boolean
+        group_chat_setting:
+          type: string
+          enum: [all, mentions, none]
+        allow_email:
+          type: boolean
+        allow_sms:
+          type: boolean
+        quiet_hours_start:
+          type: string
+          format: time
+        quiet_hours_end:
+          type: string
+          format: time
+        created_at:
+          type: string
+          format: date-time
+
+    Venue:
+      type: object
+      required: [venue_id, name, type]
+      properties:
+        venue_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [dorm, lounge, bar, house]
+        address:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        food_options:
+          type: string
+        parking_notes:
+          type: string
+        atmosphere_rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        proximity_notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Event:
+      type: object
+      required: [event_id, host_user_id, venue_id, sport, game_name, start_time]
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        host_user_id:
+          type: string
+          format: uuid
+        venue_id:
+          type: string
+          format: uuid
+        sport:
+          type: string
+        game_name:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        description:
+          type: string
+        food_drinks:
+          type: string
+        is_twentyone_plus:
+          type: boolean
+        visibility:
+          type: string
+          enum: [public]
+        created_at:
+          type: string
+          format: date-time
+
+    RSVP:
+      type: object
+      required: [rsvp_id, event_id, user_id, status]
+      properties:
+        rsvp_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name_at_rsvp:
+          type: string
+        email_at_rsvp:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [going, cancelled]
+        reminder_enabled:
+          type: boolean
+        reminder_channel:
+          type: string
+          enum: [email, sms]
+        reminder_cadence:
+          type: string
+          enum: [daily, weekly, biweekly]
+        next_reminder_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+  responses:
+    NotFound:
+      description: Resource not found
+    BadRequest:
+      description: Invalid request parameters
+    ServerError:
+      description: Internal server error
+
+paths:
+  /profiles:
+    get:
+      summary: List all profiles
+      responses:
+        '200':
+          description: List of profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+    post:
+      summary: Create a new profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '201':
+          description: Profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+
+  /profiles/{user_id}:
+    get:
+      summary: Retrieve a profile by ID
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Profile object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a profile by ID
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    delete:
+      summary: Delete a profile by ID
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Profile deleted successfully
+
+# The same pattern would repeat for: venues, events, rsvps, followed_teams, groups, group_memberships, group_messages, announcements, group_polls, group_poll_votes, reports, etc.
+# Each resource would have /resource (GET, POST) and /resource/{id} (GET, PUT, DELETE) paths.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

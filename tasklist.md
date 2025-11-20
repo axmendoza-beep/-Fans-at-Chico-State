@@ -1,0 +1,113 @@
+Task List
+Epic: Events
+- Task: Create events
+    - User Story: As a student host, I want to create a public watch party with details like sport, game, time, and location so that other        students can easily decide to attend
+    - Acceptance Criteria: 
+        - User can input all required fields: sports, game, date/time, & location
+        - Form validates that all required fields are completed before submission
+        - Date/time picker prevents selection of past dates
+        - Location field supports both typed addresses and map-based selection
+        - Created event appears in the user’s /my events
+- Task: RSVP events
+      - User Story: As a student, I want to RSVP with one click using my name and email so that I can confirm attendance quickly
+      - Acceptance Criteria:
+          - User can Rsvp to an event with a single tap/click
+          - RSVP uses the authenticated user’s name and email 
+          - User receives visual confirmation of RSVP (e.g., RSVP button changes to “going”)
+          - User can un-RSVP with one click
+          - RSVP count updates in real-time on event details page
+          - User receives confirmation with event details following RSVPing
+          - System prevents duplicates RSVPs from the same user
+- Task: Showcase trending/upcoming events
+      - User Story: As a student, I want to browse a trending tab based on likes/dislikes for current-day games so that I can discover
+        active events
+      - Acceptance Criteria:
+          - Trending tab displays events sorted by engagement score (RSVPs, recency)
+          - Events shown are filtered to current day by default
+          - User can toggle between “Today” and “Upcoming” event views
+- Task: Filter/search for events
+      - User Story: As a student, I want to search for events by sport, team, date, and location so that I can find ones that fit my                interests
+      - Acceptance Criteria: 
+          - Search bar is prominently displayed and accessible on events page
+          - Users can filter by: sport type, specific teams, date range, and location radius
+          - Multiple filters can be applied simultaneously
+          - Filter selections persist while browsing results
+          - Results display match count (e.g., “10 events found”)
+          - Filter options use mobile-friendly UI (dropdowns, date picker)
+          - Location filter allows “within X miles of me” using the device location
+Epic: Locations
+- Task: Showcase details & maps
+      - User Story: As a student, I want to see detailed venue information (type, parking, food, atmosphere) so that I can pick the best            location
+      - Acceptance criteria: 
+          - Location detail page displays: name, address, venure type, and description
+          - Venue details include: parking availability, food/drink options
+          - “Get Directions” button opens up the device’s default navigation app
+          - Images of venue display in a scrollable gallery if available 
+          - Distance from user’s current location is calculated and displayed
+Epic: Fan Groups
+- Task: Join fan groups
+      - User Story: As a student, I want to join a fan group for my favorite team or sport so that I can meet other fans
+      - Acceptance Criteria:
+          - User can browse available fan groups by sport and team
+          - Each group displays: team logo, member count, and brief description
+          - User can join a group with one tap
+          - Confirmation message displays upon successful join
+          - Joined groups appear in the user’s /my groups
+          - User can leave a group at any time with a confirmation prompt
+          - Group member count updates in real-time
+          - User can join unlimited groups
+- Task: Chat with fan groups
+      - User Story: As a group member, I want to chat using text and images so that we can discuss games and events
+      - Acceptance Criteria: 
+          - Chat interface displays messages in chronological order with timestamps
+          - User can send text messages up to 500 characters
+          - User can attach and send images 
+          - Images are compressed for mobile viewing before sending
+          - User can see their own messages immediately
+          - New messages appear in real-time without manual refresh
+          - User can see sender’s name with each message
+          - User receives error message if send fails with retry option
+Epic: Safety
+- Task: Reporting
+      - User Story: As a student, I want to report inappropriate content or behavior so that the app stays safe and welcoming
+      - Acceptance Criteria:
+          - Report button is accessible on events, user profiles, and chat messages
+          - User can select reason for report from predefined categories
+          - User can optionally add additional details (text field, 500 char. max)
+          - Reports are submitted anonymously 
+          - User receives confirmation that report was received
+          - Reported content is flagged for moderator review within the system
+- Task: Age Filter
+      - User Story: As a student under 21, I want the app to hide 21+ events so that I don’t see events I can’t attend
+      - Acceptance Criteria:
+          - User age is captured during account creation/onboarding
+          - Events marked as 21+ are automatically hidden from users under 21
+          - Age filter is applied across all views: search, trending, browse
+          - Users cannot disable the age filter, for their ownprotection
+          - Event hosts can mark events as 21+ during creation
+          - 21+ indicator is clearly visible on events for users 21+
+          - Filter applies to notification (under 21 users don’t receive 21+ alerts)
+Epic: Notifications
+- Task: about followed teams
+      - User Story: As a student, I want to get notifications when new events include my followed teams so that I don’t miss out.
+      - Acceptance Criteria:
+          - Push notifications are sent when a new event is created for followed team
+          - Notification includes: team name, opponent, date/time, and location
+          - Notification taps open the specific event details page
+          - User can customize notification preferences in settings (on/off, frequency)
+          - User can snooze or dismiss notifications
+          - Notification history is viewable in-app for 30 days
+          - Email notification option available as alternative to push
+Epic: Accounts
+- Task: Onboarding: 
+      - User Story: As a student, I want to create an account with a username and a password and verify my Chico State email so that only           students can join
+      - Acceptance Criteria:
+          - User can sign up with username, password, and Chico State email (@mail.csuchico.edu)
+          - Form validates email format and rejects non-Chico State domains
+          - Password must meet requirements: minimum 8 characters, one number, one letter
+          - Username must be unique (real-time validation)
+          - Verification email sent to the provided Chico State address
+          - Account is created but inactive until email verification is completed
+          - Verification link in email redirects to app and activates account
+          - User can resend verification email if not received
+          - Session expires after 24 hours if the email is not verified
