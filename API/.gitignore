@@ -1,8 +1,12 @@
 # Dependencies
 node_modules/
+API/node_modules/
+client/node_modules/
 
 # Environment variables
 .env
+API/.env
+client/.env
 
 # Logs
 logs
@@ -35,3 +39,5 @@ Thumbs.db
 # Build output
 dist/
 build/
+API/dist/
+client/dist/
