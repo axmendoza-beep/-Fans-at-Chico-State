@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { reportsAPI } from '../services/api';
+import { reportsAPI } from '../lib/api';
 
 function Report() {
   const [showReportForm, setShowReportForm] = useState(false);

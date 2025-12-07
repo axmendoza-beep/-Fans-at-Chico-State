@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, venuesAPI } from '../services/api';
+import { eventsAPI, venuesAPI } from '../lib/api';
 import Map from '../components/Map';
 
 function MapView() {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { profilesAPI, followedTeamsAPI } from '../services/api';
+import { profilesAPI, followedTeamsAPI } from '../lib/api';
 
 function Profile() {
   const [profiles, setProfiles] = useState([]);

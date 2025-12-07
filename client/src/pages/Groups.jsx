@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { groupsAPI, groupMembershipsAPI, groupMessagesAPI } from '../services/api';
+import { groupsAPI, groupMembershipsAPI, groupMessagesAPI } from '../lib/api';
 
 function Groups() {
   const [groups, setGroups] = useState([]);

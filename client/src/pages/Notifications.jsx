@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { followedTeamsAPI, eventsAPI } from '../services/api';
+import { followedTeamsAPI, eventsAPI } from '../lib/api';
 
 function Notifications() {
   const [followedTeams, setFollowedTeams] = useState([]);

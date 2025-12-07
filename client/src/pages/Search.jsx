@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, groupsAPI, venuesAPI } from '../services/api';
+import { eventsAPI, groupsAPI, venuesAPI } from '../lib/api';
 
 function Search() {
   const [searchType, setSearchType] = useState('events');

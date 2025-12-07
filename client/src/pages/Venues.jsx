@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { venuesAPI } from '../services/api';
+import { venuesAPI } from '../lib/api';
 
 function Venues() {
   const [venues, setVenues] = useState([]);

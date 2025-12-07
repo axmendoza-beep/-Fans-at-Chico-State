@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, rsvpsAPI } from '../services/api';
+import { eventsAPI, rsvpsAPI } from '../lib/api';
 
 function Events() {
   const [events, setEvents] = useState([]);
