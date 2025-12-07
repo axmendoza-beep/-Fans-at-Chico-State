@@ -7,6 +7,7 @@ client/node_modules/
 .env
 API/.env
 client/.env
+client/.env.local
 
 # Logs
 logs
