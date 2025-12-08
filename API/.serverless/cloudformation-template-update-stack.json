@@ -98,7 +98,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-          "S3Key": "serverless/fans-at-chico-state-api/dev/1765177467957-2025-12-08T07:04:27.957Z/fans-at-chico-state-api.zip"
+          "S3Key": "serverless/fans-at-chico-state-api/dev/1765225246986-2025-12-08T20:20:46.986Z/fans-at-chico-state-api.zip"
         },
         "Handler": "src/lambda.handler",
         "Runtime": "nodejs20.x",
@@ -121,14 +121,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersion1VtaedDIR8QfjCyoAOTysVEIqdoaigduDgeULk5g": {
+    "ApiLambdaVersion9mXioXAVDz0bXRShsTYDtlrpqjwO8VROLuybvRhTE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "3A4CRaCTa/CiTli9rKqYPUU4Ln5YG1IppX6npJeNf9A="
+        "CodeSha256": "/0YFFutTDaB1OtLPnaGyCJRs8wCz8ZGwzilCA5n4iGo="
       }
     },
     "HttpApi": {
@@ -153,7 +153,8 @@
           ],
           "AllowOrigins": [
             "https://your-amplify-app-origin.example.com",
-            "https://localhost:5173"
+            "https://localhost:5173",
+            "https://main.d2qxbewq57vyhq.amplifyapp.com"
           ]
         }
       }
@@ -257,7 +258,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersion1VtaedDIR8QfjCyoAOTysVEIqdoaigduDgeULk5g"
+        "Ref": "ApiLambdaVersion9mXioXAVDz0bXRShsTYDtlrpqjwO8VROLuybvRhTE"
       },
       "Export": {
         "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"

@@ -30,6 +30,7 @@ provider:
         # TODO: replace with your actual Amplify app origin, e.g. https://main.d123abc456def.amplifyapp.com
         - https://your-amplify-app-origin.example.com
         - https://localhost:5173
+        - https://main.d2qxbewq57vyhq.amplifyapp.com
       allowedMethods:
         - GET
         - POST

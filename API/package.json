@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "offline": "serverless offline",
-    "deploy": "serverless deploy" 
+    "deploy": "serverless deploy"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +23,8 @@
     "helmet": "^7.1.0",
     "http": "^0.0.1-security",
     "morgan": "^1.10.0",
-    "serverless": "^4.27.0"
+    "serverless": "^4.27.0",
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
