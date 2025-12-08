@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -12,6 +12,14 @@ import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Report from './pages/Report';
 
+function ProtectedRoute({ children }) {
+  const hasUser = !!localStorage.getItem('currentUser');
+  if (!hasUser) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 function App() {
   return (
     <Router>
@@ -21,15 +29,78 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/venues" element={<Venues />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/map" element={<MapView />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/chat" element={<GroupChat />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/report" element={<Report />} />
+            <Route
+              path="/events"
+              element={(
+                <ProtectedRoute>
+                  <Events />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/venues"
+              element={(
+                <ProtectedRoute>
+                  <Venues />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/search"
+              element={(
+                <ProtectedRoute>
+                  <Search />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/map"
+              element={(
+                <ProtectedRoute>
+                  <MapView />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/groups"
+              element={(
+                <ProtectedRoute>
+                  <Groups />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/chat"
+              element={(
+                <ProtectedRoute>
+                  <GroupChat />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/profile"
+              element={(
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/notifications"
+              element={(
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/report"
+              element={(
+                <ProtectedRoute>
+                  <Report />
+                </ProtectedRoute>
+              )}
+            />
           </Routes>
         </div>
       </div>

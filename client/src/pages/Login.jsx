@@ -1,57 +1,117 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profilesAPI } from '../lib/api';
+import { supabase } from '../lib/supabaseClient';
 
 function Login() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
     display_name: '',
     major: ''
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  // If a Supabase session already exists (e.g., after using a magic link),
+  // load the corresponding profile and store it as currentUser.
+  useEffect(() => {
+    const checkSessionAndProfile = async () => {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        return;
+      }
+
+      const session = data?.session;
+      const email = session?.user?.email;
+
+      if (!session || !email) {
+        return;
+      }
+
+      try {
+        const response = await profilesAPI.getAll();
+        const user = response.data.find((p) => p.email === email);
+
+        if (!user) {
+          return;
+        }
+
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        navigate('/');
+      } catch (err) {
+        console.error('Error loading profile for Supabase session', err);
+      }
+    };
+
+    checkSessionAndProfile();
+  }, [navigate, formData.display_name, formData.major]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage('');
 
     try {
       if (isLogin) {
-        // Login logic - for now, just check if profile exists
-        const response = await profilesAPI.getAll();
-        const user = response.data.find(p => p.email === formData.email);
-        
-        if (user) {
-          // Store user in localStorage
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          alert('Login successful!');
-          navigate('/');
-        } else {
-          setError('User not found. Please sign up first.');
-        }
-      } else {
-        // Sign up logic
         if (!formData.email.endsWith('@mail.csuchico.edu')) {
           setError('Please use a valid Chico State email (@mail.csuchico.edu)');
           return;
         }
 
-        const newProfile = {
+        const { error: otpError } = await supabase.auth.signInWithOtp({
           email: formData.email,
-          display_name: formData.display_name,
-          major: formData.major,
-          password_hash: 'hashed_' + formData.password, // In production, hash this properly
-          email_verified: false
-        };
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
+        });
 
-        await profilesAPI.create(newProfile);
-        alert('Account created! Please login.');
+        if (otpError) {
+          setError('Failed to send magic link: ' + otpError.message);
+          return;
+        }
+
+        setMessage('Magic link sent! Check your Chico State email to complete sign-in.');
+      } else {
+        // Sign up logic: create or update profile, then send magic link
+        if (!formData.email.endsWith('@mail.csuchico.edu')) {
+          setError('Please use a valid Chico State email (@mail.csuchico.edu)');
+          return;
+        }
+
+        const allProfiles = await profilesAPI.getAll();
+        const existing = allProfiles.data.find((p) => p.email === formData.email);
+
+        if (!existing) {
+          const newProfile = {
+            email: formData.email,
+            display_name: formData.display_name,
+            major: formData.major,
+            password_hash: 'magic_link',
+            email_verified: false,
+          };
+
+          await profilesAPI.create(newProfile);
+        }
+
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: formData.email,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
+        });
+
+        if (otpError) {
+          setError('Failed to send magic link: ' + otpError.message);
+          return;
+        }
+
+        setMessage('Sign-up almost done! We sent you a magic link to verify your email and finish creating your account.');
         setIsLogin(true);
-        setFormData({ email: '', password: '', display_name: '', major: '' });
+        setFormData({ email: '', display_name: '', major: '' });
       }
     } catch (err) {
       setError('Error: ' + err.message);
@@ -74,6 +134,18 @@ function Login() {
           borderRadius: '4px'
         }}>
           {error}
+        </div>
+      )}
+
+      {message && (
+        <div style={{ 
+          padding: '1rem', 
+          backgroundColor: '#e8f5e9', 
+          color: '#2e7d32',
+          marginBottom: '1rem',
+          borderRadius: '4px'
+        }}>
+          {message}
         </div>
       )}
 
@@ -101,28 +173,6 @@ function Login() {
               borderRadius: '4px'
             }}
           />
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            Password:
-          </label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            placeholder="Enter password"
-            required
-            minLength={8}
-            style={{ 
-              width: '100%', 
-              padding: '0.5rem',
-              fontSize: '1rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-          />
-          <small style={{ color: '#666' }}>Minimum 8 characters</small>
         </div>
 
         {!isLogin && (
