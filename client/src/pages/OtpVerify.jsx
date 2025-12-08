@@ -10,6 +10,7 @@ function OtpVerify() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('pendingOtpEmail');
@@ -109,6 +110,38 @@ function OtpVerify() {
     }
   };
 
+  const handleResend = async () => {
+    setError(null);
+    setMessage('');
+
+    if (!email) {
+      setError('Missing email context. Please start from the login page again.');
+      return;
+    }
+
+    setResendLoading(true);
+
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (otpError) {
+        setError('Failed to resend email: ' + otpError.message);
+        return;
+      }
+
+      setMessage('Email resent! Check your inbox for a new magic link or verification code.');
+    } catch (err) {
+      setError('Error resending email: ' + err.message);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
       <h1>Enter Verification Code</h1>
@@ -186,6 +219,26 @@ function OtpVerify() {
           {loading ? 'Verifying...' : 'Verify Code'}
         </button>
       </form>
+
+      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resendLoading}
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.95rem',
+            backgroundColor: '#ffffff',
+            color: '#1976d2',
+            border: '1px solid #1976d2',
+            borderRadius: '4px',
+            cursor: resendLoading ? 'not-allowed' : 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          {resendLoading ? 'Resending...' : 'Resend email'}
+        </button>
+      </div>
     </div>
   );
 }

@@ -117,6 +117,7 @@ function Login() {
         }
 
         setMessage('Magic link sent! Check your Chico State email for a magic link or verification code, then enter the code on the verification page.');
+        navigate('/verify-otp');
       } else {
         // Sign up logic: store pending profile info, then send magic link
         if (!formData.email.endsWith('@mail.csuchico.edu')) {
@@ -135,6 +136,8 @@ function Login() {
           })
         );
 
+        localStorage.setItem('pendingOtpEmail', formData.email);
+
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
@@ -147,9 +150,8 @@ function Login() {
           return;
         }
 
-        setMessage('Sign-up almost done! We sent you a magic link to verify your email and finish creating your account.');
-        setIsLogin(true);
-        setFormData({ email: '', display_name: '', major: '' });
+        setMessage('Sign-up almost done! We sent you a magic link or verification code. Enter the code on the verification page to finish creating your account.');
+        navigate('/verify-otp');
       }
     } catch (err) {
       setError('Error: ' + err.message);
