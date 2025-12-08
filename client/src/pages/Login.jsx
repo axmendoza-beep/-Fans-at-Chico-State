@@ -25,21 +25,61 @@ function Login() {
       }
 
       const session = data?.session;
-      const email = session?.user?.email;
-
-      if (!session || !email) {
+      if (!session) {
         return;
       }
 
-      try {
-        const response = await profilesAPI.getAll();
-        const user = response.data.find((p) => p.email === email);
+      const userId = session.user.id;
+      const email = session.user.email;
 
-        if (!user) {
+      try {
+        let profile;
+
+        try {
+          const response = await profilesAPI.getById(userId);
+          profile = response.data;
+        } catch (err) {
+          if (err.response?.status === 404) {
+            // No profile exists yet for this Supabase user; attempt to create one
+            const pendingRaw = localStorage.getItem('pendingSignupProfile');
+            let pending = null;
+
+            if (pendingRaw) {
+              try {
+                pending = JSON.parse(pendingRaw);
+              } catch {
+                pending = null;
+              }
+            }
+
+            const newProfile = {
+              user_id: userId,
+              email,
+              display_name:
+                pending && pending.email && pending.email.toLowerCase() === email.toLowerCase()
+                  ? pending.display_name
+                  : null,
+              major:
+                pending && pending.email && pending.email.toLowerCase() === email.toLowerCase()
+                  ? pending.major
+                  : null,
+            };
+
+            const createRes = await profilesAPI.create(newProfile);
+            profile = createRes.data;
+
+            // Clear pending signup data once profile is created
+            localStorage.removeItem('pendingSignupProfile');
+          } else {
+            throw err;
+          }
+        }
+
+        if (!profile) {
           return;
         }
 
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('currentUser', JSON.stringify(profile));
         navigate('/');
       } catch (err) {
         console.error('Error loading profile for Supabase session', err);
@@ -76,26 +116,22 @@ function Login() {
 
         setMessage('Magic link sent! Check your Chico State email to complete sign-in.');
       } else {
-        // Sign up logic: create or update profile, then send magic link
+        // Sign up logic: store pending profile info, then send magic link
         if (!formData.email.endsWith('@mail.csuchico.edu')) {
           setError('Please use a valid Chico State email (@mail.csuchico.edu)');
           return;
         }
 
-        const allProfiles = await profilesAPI.getAll();
-        const existing = allProfiles.data.find((p) => p.email === formData.email);
-
-        if (!existing) {
-          const newProfile = {
+        // Save the signup profile details locally so they can be used
+        // after the Supabase user is created via magic link.
+        localStorage.setItem(
+          'pendingSignupProfile',
+          JSON.stringify({
             email: formData.email,
             display_name: formData.display_name,
             major: formData.major,
-            password_hash: 'magic_link',
-            email_verified: false,
-          };
-
-          await profilesAPI.create(newProfile);
-        }
+          })
+        );
 
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email: formData.email,

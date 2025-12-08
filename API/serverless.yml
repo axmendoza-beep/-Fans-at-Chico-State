@@ -1,0 +1,61 @@
+service: fans-at-chico-state-api
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-west-1
+  memorySize: 521
+  timeout: 30
+  stage: ${opt:stage, 'dev'}
+
+  environment:
+    # Passed in from deployment environment; used by src/lambda.js
+    SECRETS_ID: ${env:SECRETS_ID}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource:
+            # Grant access only to the configured secret
+            - arn:aws:secretsmanager:${self:provider.region}:*:secret:${env:SECRETS_ID}*
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        # TODO: replace with your actual Amplify app origin, e.g. https://main.d123abc456def.amplifyapp.com
+        - https://your-amplify-app-origin.example.com
+        - https://localhost:5173
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+        - X-Requested-With
+      allowCredentials: true
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - httpApi:
+          method: '*'
+          path: '/{proxy+}'
+
+plugins:
+  - serverless-offline
+
+package:
+  individually: false
+  patterns:
+    # Include the root OpenAPI file in the deployment package
+    - ../fans_chico_openapi.yaml

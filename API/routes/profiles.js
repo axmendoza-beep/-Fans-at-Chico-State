@@ -22,9 +22,23 @@ router.get('/', async (req, res) => {
 // POST /v1/profiles - Create a new profile
 router.post('/', async (req, res) => {
   try {
+    const { user_id, email, display_name, major, ...rest } = req.body;
+
+    if (!user_id || !email) {
+      return res.status(400).json({ error: 'user_id and email are required' });
+    }
+
+    const payload = {
+      user_id,
+      email,
+      display_name,
+      major,
+      ...rest,
+    };
+
     const { data, error } = await supabase
       .from('profiles')
-      .insert([req.body])
+      .upsert(payload, { onConflict: 'user_id' })
       .select()
       .single();
 
