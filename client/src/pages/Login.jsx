@@ -102,6 +102,8 @@ function Login() {
           return;
         }
 
+        localStorage.setItem('pendingOtpEmail', formData.email);
+
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
@@ -114,7 +116,7 @@ function Login() {
           return;
         }
 
-        setMessage('Magic link sent! Check your Chico State email to complete sign-in.');
+        setMessage('Magic link sent! Check your Chico State email for a magic link or verification code, then enter the code on the verification page.');
       } else {
         // Sign up logic: store pending profile info, then send magic link
         if (!formData.email.endsWith('@mail.csuchico.edu')) {
@@ -123,7 +125,7 @@ function Login() {
         }
 
         // Save the signup profile details locally so they can be used
-        // after the Supabase user is created via magic link.
+        // after the Supabase user is created via magic link or code.
         localStorage.setItem(
           'pendingSignupProfile',
           JSON.stringify({

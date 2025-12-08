@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import OtpVerify from './pages/OtpVerify';
 import Events from './pages/Events';
 import Venues from './pages/Venues';
 import Search from './pages/Search';
@@ -29,6 +30,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/verify-otp" element={<OtpVerify />} />
             <Route
               path="/events"
               element={(
