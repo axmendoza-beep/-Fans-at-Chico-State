@@ -1,79 +1,60 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { Link } from 'react-router-dom';
 
 function Navigation() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(() => {
-    const stored = localStorage.getItem('currentUser');
-    return stored ? JSON.parse(stored) : null;
-  });
-
-  useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key === 'currentUser') {
-        const value = event.newValue ? JSON.parse(event.newValue) : null;
-        setCurrentUser(value);
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-    }
-    localStorage.removeItem('currentUser');
-    setCurrentUser(null);
-    navigate('/login');
-  };
-
   return (
-    <nav style={{ 
-      padding: '1rem', 
-      backgroundColor: '#f0f0f0', 
-      marginBottom: '2rem',
-      borderBottom: '2px solid #ccc'
-    }}>
-      <h2 style={{ margin: '0 0 1rem 0' }}>Fans at Chico State</h2>
-      <ul style={{ 
-        listStyle: 'none', 
-        padding: 0, 
-        display: 'flex', 
-        gap: '1rem',
-        flexWrap: 'wrap'
-      }}>
-        <li><Link to="/">Home</Link></li>
-        {!currentUser && <li><Link to="/login">Login</Link></li>}
-        <li><Link to="/events">Events</Link></li>
-        <li><Link to="/venues">Venues</Link></li>
-        <li><Link to="/search">Search</Link></li>
-        <li><Link to="/map">Map</Link></li>
-        <li><Link to="/groups">Fan Groups</Link></li>
-        <li><Link to="/chat">Group Chat</Link></li>
-        <li><Link to="/profile">Profile</Link></li>
-        <li><Link to="/notifications">Notifications</Link></li>
-        <li><Link to="/report">Report</Link></li>
-        {currentUser && (
-          <li>
-            <button
-              onClick={handleLogout}
-              style={{
-                background: 'none',
-                border: '1px solid #1976d2',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '4px',
-                color: '#1976d2',
-                cursor: 'pointer'
-              }}
-            >
-              Logout
-            </button>
-          </li>
-        )}
+    <nav
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '0.5rem 0',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #ccc',
+        zIndex: 1000,
+      }}
+    >
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          fontSize: '0.85rem',
+        }}
+      >
+        <li>
+          <Link to="/" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link to="/events" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Events
+          </Link>
+        </li>
+        <li>
+          <Link to="/venues" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Venues
+          </Link>
+        </li>
+        <li>
+          <Link to="/search" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Search/Map
+          </Link>
+        </li>
+        <li>
+          <Link to="/groups" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Fan Groups
+          </Link>
+        </li>
+        <li>
+          <Link to="/profile" style={{ textDecoration: 'none', color: '#1976d2' }}>
+            Profile
+          </Link>
+        </li>
       </ul>
     </nav>
   );

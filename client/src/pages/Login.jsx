@@ -5,11 +5,8 @@ import { supabase } from '../lib/supabaseClient';
 
 function Login() {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
-    display_name: '',
-    major: ''
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -87,72 +84,35 @@ function Login() {
     };
 
     checkSessionAndProfile();
-  }, [navigate, formData.display_name, formData.major]);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMessage('');
-
     try {
-      if (isLogin) {
-        if (!formData.email.endsWith('@mail.csuchico.edu')) {
-          setError('Please use a valid Chico State email (@mail.csuchico.edu)');
-          return;
-        }
-
-        localStorage.setItem('pendingOtpEmail', formData.email);
-
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email: formData.email,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
-
-        if (otpError) {
-          setError('Failed to send magic link: ' + otpError.message);
-          return;
-        }
-
-        setMessage('Magic link sent! Check your Chico State email for a magic link or verification code, then enter the code on the verification page.');
-        navigate('/verify-otp');
-      } else {
-        // Sign up logic: store pending profile info, then send magic link
-        if (!formData.email.endsWith('@mail.csuchico.edu')) {
-          setError('Please use a valid Chico State email (@mail.csuchico.edu)');
-          return;
-        }
-
-        // Save the signup profile details locally so they can be used
-        // after the Supabase user is created via magic link or code.
-        localStorage.setItem(
-          'pendingSignupProfile',
-          JSON.stringify({
-            email: formData.email,
-            display_name: formData.display_name,
-            major: formData.major,
-          })
-        );
-
-        localStorage.setItem('pendingOtpEmail', formData.email);
-
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email: formData.email,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
-
-        if (otpError) {
-          setError('Failed to send magic link: ' + otpError.message);
-          return;
-        }
-
-        setMessage('Sign-up almost done! We sent you a magic link or verification code. Enter the code on the verification page to finish creating your account.');
-        navigate('/verify-otp');
+      if (!formData.email.endsWith('@mail.csuchico.edu')) {
+        setError('Please use a valid Chico State email (@mail.csuchico.edu)');
+        return;
       }
+
+      localStorage.setItem('pendingOtpEmail', formData.email);
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: formData.email,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (otpError) {
+        setError('Failed to send magic link: ' + otpError.message);
+        return;
+      }
+
+      setMessage('Magic link sent! Check your Chico State email for a magic link or verification code, then enter the code on the verification page.');
+      navigate('/verify-otp');
     } catch (err) {
       setError('Error: ' + err.message);
     } finally {
@@ -162,8 +122,8 @@ function Login() {
 
   return (
     <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
-      <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-      <p>Welcome to Fans at Chico State</p>
+      <h1>Sign In</h1>
+      <p>Enter your Chico State email to receive a one-time code.</p>
 
       {error && (
         <div style={{ 
@@ -215,49 +175,6 @@ function Login() {
           />
         </div>
 
-        {!isLogin && (
-          <>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Display Name:
-              </label>
-              <input
-                type="text"
-                value={formData.display_name}
-                onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-                placeholder="Your name"
-                required
-                style={{ 
-                  width: '100%', 
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                Major:
-              </label>
-              <input
-                type="text"
-                value={formData.major}
-                onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                placeholder="e.g., Computer Science"
-                style={{ 
-                  width: '100%', 
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-              />
-            </div>
-          </>
-        )}
-
         <button 
           type="submit" 
           disabled={loading}
@@ -273,28 +190,9 @@ function Login() {
             fontWeight: 'bold'
           }}
         >
-          {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+          {loading ? 'Please wait...' : 'Continue'}
         </button>
       </form>
-
-      <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <button
-          onClick={() => {
-            setIsLogin(!isLogin);
-            setError(null);
-          }}
-          style={{ 
-            background: 'none',
-            border: 'none',
-            color: '#1976d2',
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            fontSize: '1rem'
-          }}
-        >
-          {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
-        </button>
-      </div>
 
       <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#e3f2fd', borderRadius: '4px' }}>
         <h3>Test Accounts</h3>

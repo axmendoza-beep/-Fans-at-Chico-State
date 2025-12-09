@@ -52,54 +52,25 @@ function OtpVerify() {
       const userEmail = session.user.email;
 
       try {
-        let profile;
+        let profile = null;
 
         try {
           const response = await profilesAPI.getById(userId);
           profile = response.data;
         } catch (err) {
-          if (err.response?.status === 404) {
-            const pendingRaw = localStorage.getItem('pendingSignupProfile');
-            let pending = null;
-
-            if (pendingRaw) {
-              try {
-                pending = JSON.parse(pendingRaw);
-              } catch {
-                pending = null;
-              }
-            }
-
-            const newProfile = {
-              user_id: userId,
-              email: userEmail,
-              display_name:
-                pending && pending.email && pending.email.toLowerCase() === userEmail.toLowerCase()
-                  ? pending.display_name
-                  : null,
-              major:
-                pending && pending.email && pending.email.toLowerCase() === userEmail.toLowerCase()
-                  ? pending.major
-                  : null,
-            };
-
-            const createRes = await profilesAPI.create(newProfile);
-            profile = createRes.data;
-
-            localStorage.removeItem('pendingSignupProfile');
-          } else {
+          if (err.response?.status !== 404) {
             throw err;
           }
         }
 
-        if (!profile) {
-          setError('Unable to load profile after verification.');
-          return;
-        }
-
-        localStorage.setItem('currentUser', JSON.stringify(profile));
         localStorage.removeItem('pendingOtpEmail');
-        navigate('/');
+
+        if (profile && profile.display_name) {
+          localStorage.setItem('currentUser', JSON.stringify(profile));
+          navigate('/');
+        } else {
+          navigate('/profile-setup');
+        }
       } catch (err) {
         setError('Error loading profile after verification: ' + err.message);
       }

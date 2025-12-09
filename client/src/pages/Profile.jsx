@@ -1,214 +1,169 @@
 import { useState, useEffect } from 'react';
-import { profilesAPI, followedTeamsAPI } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { profilesAPI } from '../lib/api';
+import { supabase } from '../lib/supabaseClient';
 
 function Profile() {
-  const [profiles, setProfiles] = useState([]);
-  const [followedTeams, setFollowedTeams] = useState([]);
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCreateProfile, setShowCreateProfile] = useState(false);
-  const [showFollowTeam, setShowFollowTeam] = useState(false);
-  const [newProfile, setNewProfile] = useState({
-    email: '',
-    display_name: '',
-    major: '',
-    bio: ''
-  });
-  const [newTeam, setNewTeam] = useState({
-    user_id: '',
-    sport: '',
-    team_name: ''
-  });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [profilesRes, teamsRes] = await Promise.all([
-        profilesAPI.getAll(),
-        followedTeamsAPI.getAll()
-      ]);
-      setProfiles(profilesRes.data);
-      setFollowedTeams(teamsRes.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load data: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        let current = null;
+        const stored = localStorage.getItem('currentUser');
+        if (stored) {
+          try {
+            current = JSON.parse(stored);
+          } catch {
+            current = null;
+          }
+        }
 
-  const handleCreateProfile = async (e) => {
-    e.preventDefault();
-    try {
-      await profilesAPI.create(newProfile);
-      alert('Profile created successfully!');
-      setShowCreateProfile(false);
-      setNewProfile({
-        email: '',
-        display_name: '',
-        major: '',
-        bio: ''
-      });
-      fetchData();
-    } catch (err) {
-      alert('Failed to create profile: ' + err.message);
-    }
-  };
+        let userId = current?.user_id;
 
-  const handleFollowTeam = async (e) => {
-    e.preventDefault();
-    try {
-      await followedTeamsAPI.create(newTeam);
-      alert('Team followed successfully!');
-      setShowFollowTeam(false);
-      setNewTeam({
-        user_id: '',
-        sport: '',
-        team_name: ''
-      });
-      fetchData();
-    } catch (err) {
-      alert('Failed to follow team: ' + err.message);
-    }
-  };
+        if (!userId) {
+          const { data, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) {
+            throw sessionError;
+          }
 
-  if (loading) return <div>Loading profile data...</div>;
+          const session = data?.session;
+          if (!session) {
+            navigate('/login');
+            return;
+          }
+
+          userId = session.user.id;
+        }
+
+        const response = await profilesAPI.getById(userId);
+        const freshProfile = response.data;
+        setProfile(freshProfile);
+        localStorage.setItem('currentUser', JSON.stringify(freshProfile));
+      } catch (err) {
+        setError('Failed to load profile: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [navigate]);
+
+  if (loading) return <div>Loading profile...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (!profile) return <div>No profile found.</div>;
+
+  const hasBio = !!profile.bio;
+  const hasMajor = !!profile.major;
+  const hasPhoto = !!profile.profile_photo_url;
 
   return (
-    <div>
-      <h1>Profile & Account</h1>
-      <p>Manage your account, bio, and sports interests</p>
+    <div style={{ maxWidth: '600px', margin: '2rem auto' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '2rem',
+      }}>
+        <div style={{ marginRight: '1.5rem' }}>
+          {hasPhoto ? (
+            <img
+              src={profile.profile_photo_url}
+              alt={profile.display_name || 'Profile photo'}
+              style={{
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid #1976d2',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
+                backgroundColor: '#e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                color: '#757575',
+                border: '2px solid #bdbdbd',
+              }}
+            >
+              {(profile.display_name || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <button onClick={() => setShowCreateProfile(!showCreateProfile)}>
-          {showCreateProfile ? 'Cancel' : 'Create Profile'}
-        </button>
-        {' '}
-        <button onClick={() => setShowFollowTeam(!showFollowTeam)}>
-          {showFollowTeam ? 'Cancel' : 'Follow Team'}
-        </button>
+        <div>
+          <h1 style={{ margin: 0 }}>
+            {profile.display_name || 'Unnamed Fan'}
+          </h1>
+          {hasMajor && (
+            <p style={{ margin: '0.25rem 0', color: '#555' }}>
+              <strong>Major:</strong> {profile.major}
+            </p>
+          )}
+        </div>
       </div>
 
-      {showCreateProfile && (
-        <div style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '2rem' }}>
-          <h2>Create Profile</h2>
-          <form onSubmit={handleCreateProfile}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Email (Chico State):</label><br />
-              <input
-                type="email"
-                value={newProfile.email}
-                onChange={(e) => setNewProfile({ ...newProfile, email: e.target.value })}
-                placeholder="you@mail.csuchico.edu"
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Display Name:</label><br />
-              <input
-                type="text"
-                value={newProfile.display_name}
-                onChange={(e) => setNewProfile({ ...newProfile, display_name: e.target.value })}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Major:</label><br />
-              <input
-                type="text"
-                value={newProfile.major}
-                onChange={(e) => setNewProfile({ ...newProfile, major: e.target.value })}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Bio:</label><br />
-              <textarea
-                value={newProfile.bio}
-                onChange={(e) => setNewProfile({ ...newProfile, bio: e.target.value })}
-              />
-            </div>
-            <button type="submit">Create Profile</button>
-          </form>
+      {hasBio && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ marginBottom: '0.5rem' }}>Bio</h2>
+          <p style={{ whiteSpace: 'pre-wrap' }}>{profile.bio}</p>
         </div>
       )}
 
-      {showFollowTeam && (
-        <div style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '2rem' }}>
-          <h2>Follow a Team</h2>
-          <form onSubmit={handleFollowTeam}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Your User ID:</label><br />
-              <input
-                type="text"
-                value={newTeam.user_id}
-                onChange={(e) => setNewTeam({ ...newTeam, user_id: e.target.value })}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Sport:</label><br />
-              <input
-                type="text"
-                value={newTeam.sport}
-                onChange={(e) => setNewTeam({ ...newTeam, sport: e.target.value })}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Team Name:</label><br />
-              <input
-                type="text"
-                value={newTeam.team_name}
-                onChange={(e) => setNewTeam({ ...newTeam, team_name: e.target.value })}
-                required
-              />
-            </div>
-            <button type="submit">Follow Team</button>
-          </form>
-        </div>
-      )}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/profile/edit')}
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '1rem',
+            backgroundColor: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Edit Profile
+        </button>
 
-      <div style={{ marginTop: '2rem' }}>
-        <h2>All Profiles ({profiles.length})</h2>
-        {profiles.length === 0 ? (
-          <p>No profiles found.</p>
-        ) : (
-          <div>
-            {profiles.slice(0, 5).map((profile) => (
-              <div key={profile.user_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{profile.display_name}</h3>
-                <p><strong>Email:</strong> {profile.email}</p>
-                <p><strong>Major:</strong> {profile.major || 'Not specified'}</p>
-                <p><strong>Bio:</strong> {profile.bio || 'No bio'}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={() => navigate('/profile/settings')}
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '1rem',
+            backgroundColor: '#ffffff',
+            color: '#1976d2',
+            border: '1px solid #1976d2',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Profile Settings
+        </button>
       </div>
 
-      <div style={{ marginTop: '2rem' }}>
-        <h2>Followed Teams ({followedTeams.length})</h2>
-        {followedTeams.length === 0 ? (
-          <p>No followed teams yet.</p>
-        ) : (
-          <ul>
-            {followedTeams.map((team) => (
-              <li key={team.followed_team_id}>
-                <strong>{team.team_name}</strong> ({team.sport})
-                {team.user && ` - Followed by ${team.user.display_name}`}
-              </li>
-            ))}
-          </ul>
-        )}
+      <div style={{ padding: '1rem', backgroundColor: '#e3f2fd', borderRadius: '4px' }}>
+        <p style={{ margin: 0, fontSize: '0.9rem', color: '#1e88e5' }}>
+          Your username, bio, major, and profile picture are visible to other users
+          when they view your profile.
+        </p>
       </div>
     </div>
   );

@@ -3,6 +3,9 @@ import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import OtpVerify from './pages/OtpVerify';
+import ProfileSetup from './pages/ProfileSetup';
+import EditProfile from './pages/EditProfile';
+import ProfileSettings from './pages/ProfileSettings';
 import Events from './pages/Events';
 import Venues from './pages/Venues';
 import Search from './pages/Search';
@@ -26,11 +29,28 @@ function App() {
     <Router>
       <div style={{ fontFamily: 'Arial, sans-serif' }}>
         <Navigation />
-        <div style={{ padding: '0 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ padding: '0 2rem 4.5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/verify-otp" element={<OtpVerify />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route
+              path="/profile/edit"
+              element={(
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/profile/settings"
+              element={(
+                <ProtectedRoute>
+                  <ProfileSettings />
+                </ProtectedRoute>
+              )}
+            />
             <Route
               path="/events"
               element={(
