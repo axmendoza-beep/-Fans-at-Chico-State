@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, rsvpsAPI } from '../lib/api';
+import { eventsAPI, rsvpsAPI, venuesAPI } from '../lib/api';
 
 function Events() {
   const [events, setEvents] = useState([]);
+  const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -11,14 +12,16 @@ function Events() {
     game_name: '',
     start_time: '',
     description: '',
-    host_user_id: '',
+    host_email: '',
     venue_id: '',
     photo_url: ''
   });
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [createError, setCreateError] = useState(null);
 
   useEffect(() => {
     fetchEvents();
+    fetchVenues();
   }, []);
 
   const fetchEvents = async () => {
@@ -34,8 +37,31 @@ function Events() {
     }
   };
 
+  const fetchVenues = async () => {
+    try {
+      const response = await venuesAPI.getAll();
+      setVenues(response.data);
+    } catch (err) {
+      // Leave venues empty on failure; event creation will still allow manual ID entry.
+      console.error('Failed to load venues for event creation', err);
+    }
+  };
+
   const handleCreateEvent = async (e) => {
     e.preventDefault();
+    setCreateError(null);
+
+    const email = newEvent.host_email.trim();
+    if (!email) {
+      setCreateError('Host email is required.');
+      return;
+    }
+
+    if (!email.toLowerCase().endsWith('@mail.csuchico.edu')) {
+      setCreateError('Please use a valid Chico State email ending in @mail.csuchico.edu for the host.');
+      return;
+    }
+
     try {
       await eventsAPI.create(newEvent);
       alert('Event created successfully!');
@@ -45,14 +71,14 @@ function Events() {
         game_name: '',
         start_time: '',
         description: '',
-        host_user_id: '',
+        host_email: '',
         venue_id: '',
         photo_url: ''
       });
       setSelectedPhoto(null);
       fetchEvents();
     } catch (err) {
-      alert('Failed to create event: ' + err.message);
+      setCreateError('Failed to create event: ' + err.message);
     }
   };
 
@@ -98,6 +124,17 @@ function Events() {
       {showCreateForm && (
         <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
           <h2>Create New Event</h2>
+          {createError && (
+            <div style={{
+              padding: '0.75rem 1rem',
+              marginBottom: '1rem',
+              backgroundColor: '#ffebee',
+              color: '#c62828',
+              borderRadius: '4px',
+            }}>
+              {createError}
+            </div>
+          )}
           <form onSubmit={handleCreateEvent}>
             <div style={{ marginBottom: '1rem' }}>
               <label>Sport:</label><br />
@@ -134,13 +171,33 @@ function Events() {
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Host User ID:</label><br />
+              <label>Host Email (Chico State):</label><br />
               <input
-                type="text"
-                value={newEvent.host_user_id}
-                onChange={(e) => setNewEvent({ ...newEvent, host_user_id: e.target.value })}
+                type="email"
+                value={newEvent.host_email}
+                onChange={(e) => setNewEvent({ ...newEvent, host_email: e.target.value })}
+                placeholder="you@mail.csuchico.edu"
                 required
               />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Venue:</label><br />
+              <select
+                value={newEvent.venue_id}
+                onChange={(e) => setNewEvent({ ...newEvent, venue_id: e.target.value })}
+                style={{ minWidth: '250px' }}
+              >
+                <option value="">Select a venue (optional)</option>
+                {venues.map((venue) => (
+                  <option key={venue.venue_id} value={venue.venue_id}>
+                    {venue.name} 
+                    ({venue.type}) - {venue.venue_id}
+                  </option>
+                ))}
+              </select>
+              <small style={{ display: 'block', marginTop: '0.25rem', color: '#666' }}>
+                Choosing a venue here will automatically fill the Venue ID field below.
+              </small>
             </div>
             <div style={{ marginBottom: '1rem' }}>
               <label>Venue ID:</label><br />
@@ -148,6 +205,7 @@ function Events() {
                 type="text"
                 value={newEvent.venue_id}
                 onChange={(e) => setNewEvent({ ...newEvent, venue_id: e.target.value })}
+                placeholder="Select a venue above or paste a Venue ID"
                 required
               />
             </div>

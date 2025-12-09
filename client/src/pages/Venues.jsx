@@ -141,6 +141,7 @@ function Venues() {
                 marginBottom: '1rem' 
               }}>
                 <h3>{venue.name}</h3>
+                <p><strong>Venue ID:</strong> {venue.venue_id}</p>
                 <p><strong>Type:</strong> {venue.type}</p>
                 <p><strong>Address:</strong> {venue.address || 'Not specified'}</p>
                 <p><strong>Food Options:</strong> {venue.food_options || 'None listed'}</p>

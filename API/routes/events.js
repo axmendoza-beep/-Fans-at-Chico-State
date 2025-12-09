@@ -26,9 +26,35 @@ router.get('/', async (req, res) => {
 // POST /v1/events - Create a new event
 router.post('/', async (req, res) => {
   try {
+    const { host_email, ...rest } = req.body;
+
+    if (!host_email) {
+      return res.status(400).json({ error: 'host_email is required to create an event' });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_id, email, display_name')
+      .ilike('email', host_email);
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    if (!profile || profile.length === 0) {
+      return res.status(404).json({ error: 'No profile found for the provided email' });
+    }
+
+    const hostProfile = profile[0];
+
+    const payload = {
+      ...rest,
+      host_user_id: hostProfile.user_id,
+    };
+
     const { data, error } = await supabase
       .from('events')
-      .insert([req.body])
+      .insert([payload])
       .select(`
         *,
         venue:venues(venue_id, name, type, address),

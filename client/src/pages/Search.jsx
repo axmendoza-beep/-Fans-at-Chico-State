@@ -150,6 +150,40 @@ function Search() {
         </button>
       </div>
 
+      {/* View Mode Toggle */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <span style={{ marginRight: '0.75rem', fontWeight: 'bold' }}>View:</span>
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          style={{
+            padding: '0.5rem 1rem',
+            marginRight: '0.5rem',
+            borderRadius: '4px',
+            border: viewMode === 'list' ? '2px solid #1976d2' : '1px solid #ccc',
+            backgroundColor: viewMode === 'list' ? '#e3f2fd' : '#ffffff',
+            cursor: 'pointer',
+            fontWeight: viewMode === 'list' ? 'bold' : 'normal',
+          }}
+        >
+          List
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode('map')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '4px',
+            border: viewMode === 'map' ? '2px solid #1976d2' : '1px solid #ccc',
+            backgroundColor: viewMode === 'map' ? '#e3f2fd' : '#ffffff',
+            cursor: 'pointer',
+            fontWeight: viewMode === 'map' ? 'bold' : 'normal',
+          }}
+        >
+          Map
+        </button>
+      </div>
+
       {/* Filters */}
       <div style={{ 
         padding: '1rem', 
