@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { eventsAPI, groupsAPI, venuesAPI } from '../lib/api';
+import Map from '../components/Map';
 
 function Search() {
   const [searchType, setSearchType] = useState('events');
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [events, setEvents] = useState([]);
   const [groups, setGroups] = useState([]);
   const [venues, setVenues] = useState([]);
@@ -102,11 +104,11 @@ function Search() {
 
   return (
     <div>
-      <h1>Search & Filter</h1>
-      <p>Find events, fan groups, and venues</p>
+      <h1>Search & Explore</h1>
+      <p>Find events, fan groups, and venues in list or map view</p>
 
       {/* Search Type Tabs */}
-      <div style={{ marginBottom: '2rem', borderBottom: '2px solid #ddd' }}>
+      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #ddd' }}>
         <button
           onClick={() => setSearchType('events')}
           style={{
@@ -261,56 +263,83 @@ function Search() {
         </button>
       </div>
 
-      {/* Results */}
-      <div>
-        <h2>Results ({displayData.length})</h2>
-        {displayData.length === 0 ? (
-          <p>No results found. Try adjusting your filters.</p>
-        ) : (
-          <div>
-            {searchType === 'events' && filteredEvents.map((event) => (
-              <div key={event.event_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{event.game_name}</h3>
-                <p><strong>Sport:</strong> {event.sport}</p>
-                <p><strong>Time:</strong> {new Date(event.start_time).toLocaleString()}</p>
-                <p><strong>Description:</strong> {event.description || 'No description'}</p>
-                {event.venue && <p><strong>Venue:</strong> {event.venue.name}</p>}
-                {event.host && <p><strong>Host:</strong> {event.host.display_name}</p>}
-                <p><strong>21+:</strong> {event.is_twentyone_plus ? 'Yes' : 'No'}</p>
-              </div>
-            ))}
+      {/* Results / Map */}
+      {viewMode === 'list' && (
+        <div>
+          <h2>Results ({displayData.length})</h2>
+          {displayData.length === 0 ? (
+            <p>No results found. Try adjusting your filters.</p>
+          ) : (
+            <div>
+              {searchType === 'events' && filteredEvents.map((event) => (
+                <div key={event.event_id} style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '1rem', 
+                  marginBottom: '1rem' 
+                }}>
+                  <h3>{event.game_name}</h3>
+                  <p><strong>Sport:</strong> {event.sport}</p>
+                  <p><strong>Time:</strong> {new Date(event.start_time).toLocaleString()}</p>
+                  <p><strong>Description:</strong> {event.description || 'No description'}</p>
+                  {event.venue && <p><strong>Venue:</strong> {event.venue.name}</p>}
+                  {event.host && <p><strong>Host:</strong> {event.host.display_name}</p>}
+                  <p><strong>21+:</strong> {event.is_twentyone_plus ? 'Yes' : 'No'}</p>
+                </div>
+              ))}
 
-            {searchType === 'groups' && filteredGroups.map((group) => (
-              <div key={group.group_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{group.name}</h3>
-                <p><strong>Sport:</strong> {group.sport}</p>
-                <p><strong>Description:</strong> {group.description || 'No description'}</p>
-              </div>
-            ))}
+              {searchType === 'groups' && filteredGroups.map((group) => (
+                <div key={group.group_id} style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '1rem', 
+                  marginBottom: '1rem' 
+                }}>
+                  <h3>{group.name}</h3>
+                  <p><strong>Sport:</strong> {group.sport}</p>
+                  <p><strong>Description:</strong> {group.description || 'No description'}</p>
+                </div>
+              ))}
 
-            {searchType === 'venues' && filteredVenues.map((venue) => (
-              <div key={venue.venue_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{venue.name}</h3>
-                <p><strong>Type:</strong> {venue.type}</p>
-                <p><strong>Address:</strong> {venue.address || 'Not specified'}</p>
-                <p><strong>Atmosphere:</strong> {'⭐'.repeat(venue.atmosphere_rating || 0)}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              {searchType === 'venues' && filteredVenues.map((venue) => (
+                <div key={venue.venue_id} style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '1rem', 
+                  marginBottom: '1rem' 
+                }}>
+                  <h3>{venue.name}</h3>
+                  <p><strong>Type:</strong> {venue.type}</p>
+                  <p><strong>Address:</strong> {venue.address || 'Not specified'}</p>
+                  <p><strong>Atmosphere:</strong> {' '.repeat(venue.atmosphere_rating || 0)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {viewMode === 'map' && (
+        <div style={{ marginTop: '1rem' }}>
+          <h2>Map view</h2>
+          {!window.google ? (
+            <div style={{ 
+              padding: '2rem', 
+              backgroundColor: '#fff3cd', 
+              border: '1px solid #ffc107',
+              borderRadius: '4px',
+              marginTop: '1rem'
+            }}>
+              <h3>Google Maps Not Loaded</h3>
+              <p>To enable the map feature, you need to add the Google Maps script to <code>index.html</code>.</p>
+              <p>For now, switch back to list view to browse results.</p>
+            </div>
+          ) : (
+            <Map 
+              venues={filteredVenues}
+              events={filteredEvents}
+              center={{ lat: 39.7285, lng: -121.8375 }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

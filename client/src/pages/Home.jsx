@@ -1,24 +1,119 @@
+import { Link } from 'react-router-dom';
+
 function Home() {
   return (
-    <div>
-      <h1>Welcome to Fans at Chico State</h1>
-      <p>Find, host, and join sports watch parties. Connect with fellow fans!</p>
-      
-      <div style={{ marginTop: '2rem' }}>
-        <h2>Features</h2>
-        <ul>
-          <li><strong>Events:</strong> Browse, create, and RSVP to watch parties</li>
-          <li><strong>Venues:</strong> Discover great locations for watch parties</li>
-          <li><strong>Fan Groups:</strong> Join groups, chat with fans, and stay connected</li>
-          <li><strong>Profile:</strong> Manage your account and preferences</li>
-          <li><strong>Notifications:</strong> Get alerts for your favorite teams</li>
-          <li><strong>Safety:</strong> Report inappropriate content</li>
-        </ul>
-      </div>
+    <div style={{ maxWidth: '900px', margin: '2rem auto' }}>
+      <h1>Fans at Chico State</h1>
+      <p style={{ marginBottom: '2rem' }}>
+        Jump into the action: find events, discover venues, connect with fan groups, and manage your profile.
+      </p>
 
-      <div style={{ marginTop: '2rem' }}>
-        <h2>Quick Stats</h2>
-        <p>API Status: Connected to http://localhost:3000</p>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '1.5rem',
+        }}
+      >
+        <Link
+          to="/events"
+          style={{
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
+          <div
+            style={{
+              borderRadius: '12px',
+              padding: '1.5rem',
+              background: '#e3f2fd',
+              border: '1px solid #90caf9',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              height: '100%',
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Events</h2>
+            <p style={{ margin: 0 }}>
+              See what games are on, RSVP, and find the best watch parties around campus.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/venues"
+          style={{
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
+          <div
+            style={{
+              borderRadius: '12px',
+              padding: '1.5rem',
+              background: '#e8f5e9',
+              border: '1px solid #a5d6a7',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              height: '100%',
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Venues</h2>
+            <p style={{ margin: 0 }}>
+              Browse popular spots to watch the game, from dorm lounges to local bars.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/groups"
+          style={{
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
+          <div
+            style={{
+              borderRadius: '12px',
+              padding: '1.5rem',
+              background: '#fff3e0',
+              border: '1px solid #ffcc80',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              height: '100%',
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Fan Groups</h2>
+            <p style={{ margin: 0 }}>
+              Join fan groups, chat with other students, and keep up with your teams.
+            </p>
+          </div>
+        </Link>
+
+        <Link
+          to="/profile"
+          style={{
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
+          <div
+            style={{
+              borderRadius: '12px',
+              padding: '1.5rem',
+              background: '#f3e5f5',
+              border: '1px solid #ce93d8',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              height: '100%',
+            }}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Profile</h2>
+            <p style={{ margin: 0 }}>
+              View your public profile, edit your info, and manage your settings.
+            </p>
+          </div>
+        </Link>
       </div>
     </div>
   );
