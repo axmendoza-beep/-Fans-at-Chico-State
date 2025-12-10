@@ -18,6 +18,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 const profilesRouter = require('./routes/profiles');
 const venuesRouter = require('./routes/venues');
 const eventsRouter = require('./routes/events');
+const eventVotesRouter = require('./routes/event_votes');
 const rsvpsRouter = require('./routes/rsvps');
 const followedTeamsRouter = require('./routes/followed_teams');
 const groupsRouter = require('./routes/groups');
@@ -45,6 +46,7 @@ app.get('/health', (req, res) => {
 app.use('/v1/profiles', profilesRouter);
 app.use('/v1/venues', venuesRouter);
 app.use('/v1/events', eventsRouter);
+app.use('/v1/event_votes', eventVotesRouter);
 app.use('/v1/rsvps', rsvpsRouter);
 app.use('/v1/followed_teams', followedTeamsRouter);
 app.use('/v1/groups', groupsRouter);

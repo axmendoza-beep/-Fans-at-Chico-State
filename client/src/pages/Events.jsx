@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, rsvpsAPI, venuesAPI } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { eventsAPI, rsvpsAPI, venuesAPI, eventVotesAPI } from '../lib/api';
 
 function Events() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,11 +18,35 @@ function Events() {
     venue_id: ''
   });
   const [createError, setCreateError] = useState(null);
+  const [currentUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('currentUser');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [votes, setVotes] = useState({}); // { [event_id]: 1 | -1 | 0 }
+  const [savedEvents, setSavedEvents] = useState(() => {
+    try {
+      const raw = localStorage.getItem('savedEvents');
+      const parsed = raw ? JSON.parse(raw) : {};
+      if (currentUser && parsed[currentUser.user_id]) {
+        return parsed[currentUser.user_id];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     fetchEvents();
     fetchVenues();
-  }, []);
+    if (currentUser) {
+      fetchVotes(currentUser.user_id);
+    }
+  }, [currentUser]);
 
   const fetchEvents = async () => {
     try {
@@ -32,6 +58,19 @@ function Events() {
       setError('Failed to load events: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVotes = async (userId) => {
+    try {
+      const response = await eventVotesAPI.getForUser(userId);
+      const voteMap = {};
+      response.data.forEach((vote) => {
+        voteMap[vote.event_id] = vote.value;
+      });
+      setVotes(voteMap);
+    } catch (err) {
+      console.error('Failed to load event votes for user', err);
     }
   };
 
@@ -78,20 +117,58 @@ function Events() {
     }
   };
 
-  const handleRSVP = async (eventId) => {
-    const userId = prompt('Enter your user ID:');
-    if (!userId) return;
-
-    try {
-      await rsvpsAPI.create({
-        event_id: eventId,
-        user_id: userId,
-        status: 'going'
-      });
-      alert('RSVP successful!');
-    } catch (err) {
-      alert('Failed to RSVP: ' + err.message);
+  const toggleVote = (eventId, value) => {
+    if (!currentUser) {
+      alert('Please sign in to vote on events.');
+      navigate('/login');
+      return;
     }
+
+    setVotes((prev) => {
+      const current = prev[eventId] || 0;
+      const nextValue = current === value ? 0 : value;
+
+      // Optimistic update
+      const updated = { ...prev, [eventId]: nextValue };
+
+      // Persist to backend
+      eventVotesAPI.setVote({
+        event_id: eventId,
+        user_id: currentUser.user_id,
+        value: nextValue,
+      }).catch((err) => {
+        console.error('Failed to persist vote', err);
+      });
+
+      return updated;
+    });
+  };
+
+  const toggleSave = (eventId) => {
+    if (!currentUser) {
+      alert('Please sign in to save events.');
+      navigate('/login');
+      return;
+    }
+
+    setSavedEvents((prev) => {
+      let next;
+      if (prev.includes(eventId)) {
+        next = prev.filter((id) => id !== eventId);
+      } else {
+        next = [...prev, eventId];
+      }
+      try {
+        const raw = localStorage.getItem('savedEvents');
+        const parsed = raw ? JSON.parse(raw) : {};
+        const userId = currentUser.user_id;
+        const updated = { ...parsed, [userId]: next };
+        localStorage.setItem('savedEvents', JSON.stringify(updated));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
 
   if (loading) return <div>Loading events...</div>;
@@ -100,7 +177,7 @@ function Events() {
   return (
     <div>
       <h1>Events</h1>
-      <p>Browse upcoming watch parties and RSVP to join</p>
+      <p>Browse upcoming watch parties, vote on what looks fun, and open an event to see full details.</p>
 
       <button onClick={() => setShowCreateForm(!showCreateForm)}>
         {showCreateForm ? 'Cancel' : 'Create New Event'}
@@ -206,23 +283,91 @@ function Events() {
         ) : (
           <div>
             {events.map((event) => (
-              <div key={event.event_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{event.game_name}</h3>
-                <p><strong>Sport:</strong> {event.sport}</p>
-                <p><strong>Time:</strong> {new Date(event.start_time).toLocaleString()}</p>
-                <p><strong>Description:</strong> {event.description || 'No description'}</p>
-                {event.venue && (
-                  <p><strong>Venue:</strong> {event.venue.name} ({event.venue.type})</p>
-                )}
-                {event.host && (
-                  <p><strong>Host:</strong> {event.host.display_name}</p>
-                )}
-                <p><strong>21+:</strong> {event.is_twentyone_plus ? 'Yes' : 'No'}</p>
-                <button onClick={() => handleRSVP(event.event_id)}>RSVP</button>
+              <div
+                key={event.event_id}
+                style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '1rem', 
+                  marginBottom: '1rem',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  cursor: 'pointer',
+                  backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : 'white',
+                }}
+                onClick={() => navigate(`/events/${event.event_id}`)}
+              >
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+                    {event.game_name}
+                  </h3>
+                  <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                    <strong>Sport:</strong> {event.sport}
+                  </p>
+                  <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                    <strong>Start:</strong> {new Date(event.start_time).toLocaleString()}
+                  </p>
+                  {event.venue && (
+                    <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                      <strong>Venue:</strong> {event.venue.name} ({event.venue.type})
+                    </p>
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    minWidth: '120px',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => toggleVote(event.event_id, 1)}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        border: votes[event.event_id] === 1 ? '2px solid #2e7d32' : '1px solid #ccc',
+                        backgroundColor: votes[event.event_id] === 1 ? '#e8f5e9' : '#ffffff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ▲ Upvote
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleVote(event.event_id, -1)}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px',
+                        border: votes[event.event_id] === -1 ? '2px solid #c62828' : '1px solid #ccc',
+                        backgroundColor: votes[event.event_id] === -1 ? '#ffebee' : '#ffffff',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ▼ Downvote
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSave(event.event_id)}
+                    style={{
+                      marginTop: '0.5rem',
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '4px',
+                      border: savedEvents.includes(event.event_id) ? '2px solid #6a1b9a' : '1px solid #ccc',
+                      backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : '#ffffff',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {savedEvents.includes(event.event_id) ? 'Saved' : 'Save'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

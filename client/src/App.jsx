@@ -7,6 +7,7 @@ import ProfileSetup from './pages/ProfileSetup';
 import EditProfile from './pages/EditProfile';
 import ProfileSettings from './pages/ProfileSettings';
 import Events from './pages/Events';
+import EventDetails from './pages/EventDetails';
 import Venues from './pages/Venues';
 import Search from './pages/Search';
 import MapView from './pages/MapView';
@@ -56,6 +57,14 @@ function App() {
               element={(
                 <ProtectedRoute>
                   <Events />
+                </ProtectedRoute>
+              )}
+            />
+            <Route
+              path="/events/:eventId"
+              element={(
+                <ProtectedRoute>
+                  <EventDetails />
                 </ProtectedRoute>
               )}
             />

@@ -18,6 +18,12 @@ export const eventsAPI = {
   delete: (id) => api.delete(`/events/${id}`),
 };
 
+// Event Votes
+export const eventVotesAPI = {
+  getForUser: (userId: string) => api.get('/event_votes', { params: { user_id: userId } }),
+  setVote: (data: { event_id: string; user_id: string; value: number }) => api.post('/event_votes', data),
+};
+
 // Venues
 export const venuesAPI = {
   getAll: () => api.get('/venues'),
