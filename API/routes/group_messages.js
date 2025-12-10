@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
       .select(`
         *,
         group:groups(group_id, name, sport),
-        user:profiles(user_id, display_name, email)
+        user:profiles!group_messages_user_id_fkey(user_id, display_name, email)
       `)
       .single();
 
@@ -83,7 +83,7 @@ router.get('/:message_id', async (req, res) => {
       .select(`
         *,
         group:groups(group_id, name, sport),
-        user:profiles(user_id, display_name, email)
+        user:profiles!group_messages_user_id_fkey(user_id, display_name, email)
       `)
       .eq('message_id', message_id)
       .single();
@@ -114,7 +114,7 @@ router.put('/:message_id', async (req, res) => {
       .select(`
         *,
         group:groups(group_id, name, sport),
-        user:profiles(user_id, display_name, email)
+        user:profiles!group_messages_user_id_fkey(user_id, display_name, email)
       `)
       .single();
 

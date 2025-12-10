@@ -210,16 +210,10 @@ function Groups() {
     }
   }, [selectedGroupId]);
 
-  useEffect(() => {
-    if (!selectedGroupId) return;
-
-    const intervalId = setInterval(() => {
-      loadMessagesForGroup(selectedGroupId);
-      loadPollsForGroup(selectedGroupId);
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [selectedGroupId]);
+  // Note: we intentionally do NOT poll messages/polls on an interval.
+  // Messages and polls are loaded when the selected group changes and
+  // after actions like sending a message or creating a poll. This avoids
+  // flicker where messages briefly disappear or reload every few seconds.
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -334,6 +328,11 @@ function Groups() {
     const closes = new Date(p.closes_at);
     return closes <= now;
   });
+
+  // Treat the most recent active poll as the "current" poll to pin at the top of chat
+  const currentPoll = activePolls
+    .slice()
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
 
   return (
     <div>
@@ -500,9 +499,10 @@ function Groups() {
               <div style={{ marginBottom: '1rem' }}>
                 {pollsLoading ? (
                   <p>Loading polls...</p>
-                ) : activePolls.length === 0 ? null : (
+                ) : !currentPoll ? null : (
                   <div>
-                    {activePolls.map((poll) => {
+                    {(() => {
+                      const poll = currentPoll;
                       const options = (() => {
                         try {
                           const parsed = JSON.parse(poll.options_text || '[]');
@@ -614,7 +614,7 @@ function Groups() {
                           </div>
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
                 )}
               </div>
