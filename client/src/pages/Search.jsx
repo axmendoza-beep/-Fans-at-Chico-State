@@ -24,6 +24,14 @@ function Search() {
     fetchData();
   }, []);
 
+  // When switching into map view or between Events/Venues tabs while in map view,
+  // refresh data so the map reflects newly created events/venues.
+  useEffect(() => {
+    if (viewMode === 'map' && (searchType === 'events' || searchType === 'venues')) {
+      fetchData();
+    }
+  }, [viewMode, searchType]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -367,8 +375,8 @@ function Search() {
             </div>
           ) : (
             <Map 
-              venues={filteredVenues}
-              events={filteredEvents}
+              venues={searchType === 'venues' ? filteredVenues : []}
+              events={searchType === 'events' ? filteredEvents : []}
               center={{ lat: 39.7285, lng: -121.8375 }}
             />
           )}

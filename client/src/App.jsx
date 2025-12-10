@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './components/Navigation';
+import { supabase } from './lib/supabaseClient';
+import { profilesAPI } from './lib/api';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import OtpVerify from './pages/OtpVerify';
@@ -18,10 +21,52 @@ import Notifications from './pages/Notifications';
 import Report from './pages/Report';
 
 function ProtectedRoute({ children }) {
-  const hasUser = !!localStorage.getItem('currentUser');
-  if (!hasUser) {
+  const [status, setStatus] = useState('checking'); // 'checking' | 'allowed' | 'denied'
+
+  useEffect(() => {
+    const ensureUser = async () => {
+      try {
+        const stored = localStorage.getItem('currentUser');
+        if (stored) {
+          setStatus('allowed');
+          return;
+        }
+
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data?.session) {
+          setStatus('denied');
+          return;
+        }
+
+        const userId = data.session.user.id;
+
+        try {
+          const response = await profilesAPI.getById(userId);
+          const profile = response.data;
+          if (profile) {
+            localStorage.setItem('currentUser', JSON.stringify(profile));
+          }
+        } catch {
+          // If profile load fails, still allow based on Supabase session
+        }
+
+        setStatus('allowed');
+      } catch {
+        setStatus('denied');
+      }
+    };
+
+    ensureUser();
+  }, []);
+
+  if (status === 'checking') {
+    return null;
+  }
+
+  if (status === 'denied') {
     return <Navigate to="/login" replace />;
   }
+
   return children;
 }
 

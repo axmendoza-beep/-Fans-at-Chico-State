@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { groupsAPI, groupMembershipsAPI, groupMessagesAPI } from '../lib/api';
 
 function Groups() {
-  const [groups, setGroups] = useState([]);
+  const navigate = useNavigate();
+  const [groups, setGroups] = useState([]); // all groups
+  const [memberships, setMemberships] = useState([]); // memberships for current user
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -13,14 +16,38 @@ function Groups() {
   });
 
   useEffect(() => {
-    fetchGroups();
+    fetchGroupsAndMemberships();
   }, []);
 
-  const fetchGroups = async () => {
+  const fetchGroupsAndMemberships = async () => {
     try {
       setLoading(true);
-      const response = await groupsAPI.getAll();
-      setGroups(response.data);
+      let currentUser = null;
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          currentUser = JSON.parse(stored);
+        } catch {
+          currentUser = null;
+        }
+      }
+
+      if (!currentUser || !currentUser.user_id) {
+        navigate('/login');
+        return;
+      }
+
+      const [groupsRes, membershipsRes] = await Promise.all([
+        groupsAPI.getAll(),
+        groupMembershipsAPI.getAll(),
+      ]);
+
+      setGroups(groupsRes.data || []);
+
+      const userMemberships = (membershipsRes.data || []).filter(
+        (m) => m.user_id === currentUser.user_id,
+      );
+      setMemberships(userMemberships);
       setError(null);
     } catch (err) {
       setError('Failed to load groups: ' + err.message);
@@ -40,20 +67,32 @@ function Groups() {
         sport: '',
         description: ''
       });
-      fetchGroups();
+      fetchGroupsAndMemberships();
     } catch (err) {
       alert('Failed to create group: ' + err.message);
     }
   };
 
   const handleJoinGroup = async (groupId) => {
-    const userId = prompt('Enter your user ID:');
-    if (!userId) return;
+    let currentUser = null;
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      try {
+        currentUser = JSON.parse(stored);
+      } catch {
+        currentUser = null;
+      }
+    }
+
+    if (!currentUser || !currentUser.user_id) {
+      navigate('/login');
+      return;
+    }
 
     try {
       await groupMembershipsAPI.create({
         group_id: groupId,
-        user_id: userId,
+        user_id: currentUser.user_id,
         role: 'member'
       });
       alert('Joined group successfully!');
@@ -64,6 +103,9 @@ function Groups() {
 
   if (loading) return <div>Loading groups...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
+
+  const joinedGroupIds = new Set(memberships.map((m) => m.group_id));
+  const joinedGroups = groups.filter((g) => joinedGroupIds.has(g.group_id));
 
   return (
     <div>
@@ -109,12 +151,12 @@ function Groups() {
       )}
 
       <div style={{ marginTop: '2rem' }}>
-        <h2>Available Groups ({groups.length})</h2>
-        {groups.length === 0 ? (
-          <p>No groups found. Create one to get started!</p>
+        <h2>Your Fan Groups ({joinedGroups.length})</h2>
+        {joinedGroups.length === 0 ? (
+          <p>You're not in any Fan Groups yet.</p>
         ) : (
           <div>
-            {groups.map((group) => (
+            {joinedGroups.map((group) => (
               <div key={group.group_id} style={{ 
                 border: '1px solid #ddd', 
                 padding: '1rem', 
