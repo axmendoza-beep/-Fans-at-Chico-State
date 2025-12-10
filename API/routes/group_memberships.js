@@ -2,17 +2,21 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 
-// GET /v1/group_memberships - List all group memberships
+// GET /v1/group_memberships - List all group memberships (optionally filtered by user_id)
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { user_id: userId } = req.query;
+
+    let query = supabase
       .from('group_memberships')
-      .select(`
-        *,
-        group:groups(group_id, name, sport),
-        user:profiles(user_id, display_name, email)
-      `)
+      .select('*')
       .order('joined_at', { ascending: false });
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

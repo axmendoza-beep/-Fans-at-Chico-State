@@ -24,9 +24,7 @@
                 "Action": [
                   "secretsmanager:GetSecretValue"
                 ],
-                "Resource": [
-                  "arn:aws:secretsmanager:us-west-1:*:secret:${env:SECRETS_ID}*"
-                ]
+                "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
               }
             ]
           }
@@ -53,7 +51,311 @@
             ],
             "allowCredentials": "<REDACTED>"
           }
-        }
+        },
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "ApiLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/fans-at-chico-state-api-dev-api"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "fans-at-chico-state-api",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "secretsmanager:GetSecretValue"
+                          ],
+                          "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "fans-at-chico-state-api",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "ApiLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+                  "S3Key": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z/fans-at-chico-state-api.zip"
+                },
+                "Handler": "src/lambda.handler",
+                "Runtime": "nodejs20.x",
+                "FunctionName": "fans-at-chico-state-api-dev-api",
+                "MemorySize": 521,
+                "Timeout": 30,
+                "Environment": {
+                  "Variables": {
+                    "SECRETS_ID": "<REDACTED>"
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "ApiLogGroup"
+              ]
+            },
+            "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "ApiLambdaFunction"
+                },
+                "CodeSha256": "bfJ9yHhKhEICNpptPuM37xbcm914IgbrEFCaYvy+GlQ="
+              }
+            },
+            "HttpApi": {
+              "Type": "AWS::ApiGatewayV2::Api",
+              "Properties": {
+                "Name": "dev-fans-at-chico-state-api",
+                "ProtocolType": "HTTP",
+                "CorsConfiguration": {
+                  "AllowCredentials": "<REDACTED>",
+                  "AllowHeaders": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With"
+                  ],
+                  "AllowMethods": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE",
+                    "OPTIONS"
+                  ],
+                  "AllowOrigins": [
+                    "https://your-amplify-app-origin.example.com",
+                    "https://localhost:5173",
+                    "https://main.d2qxbewq57vyhq.amplifyapp.com"
+                  ]
+                }
+              }
+            },
+            "HttpApiStage": {
+              "Type": "AWS::ApiGatewayV2::Stage",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "StageName": "$default",
+                "AutoDeploy": true,
+                "DefaultRouteSettings": {
+                  "DetailedMetricsEnabled": false
+                }
+              }
+            },
+            "ApiLambdaPermissionHttpApi": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "HttpApi"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "HttpApiIntegrationApi": {
+              "Type": "AWS::ApiGatewayV2::Integration",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PayloadFormatVersion": "2.0",
+                "TimeoutInMillis": 30000
+              }
+            },
+            "HttpApiRouteAnyProxyVar": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "ANY /{proxy+}",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationApi"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationApi"
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+              "Export": {
+                "Name": "sls-fans-at-chico-state-api-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "ApiLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
+              },
+              "Export": {
+                "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
+              }
+            },
+            "HttpApiId": {
+              "Description": "Id of the HTTP API",
+              "Value": {
+                "Ref": "HttpApi"
+              },
+              "Export": {
+                "Name": "sls-fans-at-chico-state-api-dev-HttpApiId"
+              }
+            },
+            "HttpApiUrl": {
+              "Description": "URL of the HTTP API",
+              "Value": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "https://",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    ".execute-api.",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ".",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    }
+                  ]
+                ]
+              },
+              "Export": {
+                "Name": "sls-fans-at-chico-state-api-dev-HttpApiUrl"
+              }
+            }
+          }
+        },
+        "vpc": {}
       },
       "functions": {
         "api": {
@@ -63,9 +365,18 @@
               "httpApi": {
                 "method": "*",
                 "path": "/{proxy+}"
-              }
+              },
+              "resolvedMethod": "ANY",
+              "resolvedPath": "/{proxy+}"
             }
-          ]
+          ],
+          "name": "fans-at-chico-state-api-dev-api",
+          "package": {},
+          "memory": 521,
+          "timeout": 30,
+          "runtime": "nodejs20.x",
+          "vpc": {},
+          "versionLogicalId": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
         }
       },
       "plugins": [
@@ -75,7 +386,11 @@
         "individually": false,
         "patterns": [
           "../fans_chico_openapi.yaml"
-        ]
+        ],
+        "artifactsS3KeyDirname": "serverless/fans-at-chico-state-api/dev/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+        "artifact": "/Users/alexiamendoza/Desktop/Fans at Chico State/API/.serverless/fans-at-chico-state-api.zip",
+        "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z"
       }
     },
     "provider": {
@@ -96,9 +411,7 @@
               "Action": [
                 "secretsmanager:GetSecretValue"
               ],
-              "Resource": [
-                "arn:aws:secretsmanager:us-west-1:*:secret:${env:SECRETS_ID}*"
-              ]
+              "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
             }
           ]
         }
@@ -125,7 +438,311 @@
           ],
           "allowCredentials": "<REDACTED>"
         }
-      }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ApiLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/fans-at-chico-state-api-dev-api"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "fans-at-chico-state-api",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "secretsmanager:GetSecretValue"
+                        ],
+                        "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "fans-at-chico-state-api",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+                "S3Key": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z/fans-at-chico-state-api.zip"
+              },
+              "Handler": "src/lambda.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "fans-at-chico-state-api-dev-api",
+              "MemorySize": 521,
+              "Timeout": 30,
+              "Environment": {
+                "Variables": {
+                  "SECRETS_ID": "<REDACTED>"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ApiLogGroup"
+            ]
+          },
+          "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ApiLambdaFunction"
+              },
+              "CodeSha256": "bfJ9yHhKhEICNpptPuM37xbcm914IgbrEFCaYvy+GlQ="
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-fans-at-chico-state-api",
+              "ProtocolType": "HTTP",
+              "CorsConfiguration": {
+                "AllowCredentials": "<REDACTED>",
+                "AllowHeaders": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Requested-With"
+                ],
+                "AllowMethods": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "OPTIONS"
+                ],
+                "AllowOrigins": [
+                  "https://your-amplify-app-origin.example.com",
+                  "https://localhost:5173",
+                  "https://main.d2qxbewq57vyhq.amplifyapp.com"
+                ]
+              }
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "ApiLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationApi": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteAnyProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "ANY /{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+            "Export": {
+              "Name": "sls-fans-at-chico-state-api-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "ApiLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
+            },
+            "Export": {
+              "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-fans-at-chico-state-api-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-fans-at-chico-state-api-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "vpc": {}
     },
     "dashboard": {
       "isEnabledForService": false,
@@ -135,11 +752,6 @@
       "serviceAppId": null,
       "serviceProvider": null,
       "instanceParameters": null
-    },
-    "error": {
-      "message": "Cannot resolve '${env:SECRETS_ID}' variable at 'provider.environment.SECRETS_ID'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.",
-      "stack": "Error: Cannot resolve '${env:SECRETS_ID}' variable at 'provider.environment.SECRETS_ID'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.\n    at _ResolverManager.resolve (file:///Users/alexiamendoza/.serverless/releases/4.27.1/package/dist/sf-core.js:725:32282)\n    at async #handlePlaceholderNode (file:///Users/alexiamendoza/.serverless/releases/4.27.1/package/dist/sf-core.js:725:30470)\n    at async file:///Users/alexiamendoza/.serverless/releases/4.27.1/package/dist/sf-core.js:725:28315\n    at async processNodeAndHandleCompletion (file:///Users/alexiamendoza/.serverless/releases/4.27.1/package/dist/sf-core.js:725:16717)",
-      "code": "MISSING_VARIABLE_RESULT"
     },
     "serviceRawFile": "service: fans-at-chico-state-api\n\nframeworkVersion: '4'\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-west-1\n  memorySize: 521\n  timeout: 30\n  stage: ${opt:stage, 'dev'}\n\n  environment:\n    # Passed in from deployment environment; used by src/lambda.js\n    SECRETS_ID: ${env:SECRETS_ID}\n\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - secretsmanager:GetSecretValue\n          Resource:\n            # Grant access only to the configured secret\n            - arn:aws:secretsmanager:${self:provider.region}:*:secret:${env:SECRETS_ID}*\n\n  httpApi:\n    cors:\n      allowedOrigins:\n        # TODO: replace with your actual Amplify app origin, e.g. https://main.d123abc456def.amplifyapp.com\n        - https://your-amplify-app-origin.example.com\n        - https://localhost:5173\n        - https://main.d2qxbewq57vyhq.amplifyapp.com\n      allowedMethods:\n        - GET\n        - POST\n        - PUT\n        - PATCH\n        - DELETE\n        - OPTIONS\n      allowedHeaders:\n        - Content-Type\n        - Authorization\n        - X-Requested-With\n      allowCredentials: true\n\nfunctions:\n  api:\n    handler: src/lambda.handler\n    events:\n      - httpApi:\n          method: '*'\n          path: '/{proxy+}'\n\nplugins:\n  - serverless-offline\n\npackage:\n  individually: false\n  patterns:\n    # Include the root OpenAPI file in the deployment package\n    - ../fans_chico_openapi.yaml\n",
     "command": [
@@ -152,14 +764,16 @@
     "orgName": "fansatchicostate",
     "userId": "XR4rvBRZj9pbN8XMlr",
     "userName": "fansatchicostate",
+    "serviceProviderAwsAccountId": "141814481357",
+    "serviceProviderAwsCfStackName": "fans-at-chico-state-api-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-west-1:141814481357:stack/fans-at-chico-state-api-dev/c4f07450-d3a6-11f0-a943-025186444e0f",
     "serviceProviderAwsCfStackCreated": "2025-12-07T19:56:07.401Z",
-    "serviceProviderAwsCfStackUpdated": "2025-12-08T20:21:07.393Z",
+    "serviceProviderAwsCfStackUpdated": "2025-12-09T06:48:59.953Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-west-1:141814481357:function:fans-at-chico-state-api-dev-api:7",
+        "OutputValue": "arn:aws:lambda:us-west-1:141814481357:function:fans-at-chico-state-api-dev-api:8",
         "Description": "Current Lambda function version",
         "ExportName": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
       },
@@ -180,6 +794,308 @@
         "Description": "URL of the HTTP API",
         "ExportName": "sls-fans-at-chico-state-api-dev-HttpApiUrl"
       }
-    ]
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "ApiLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/fans-at-chico-state-api-dev-api"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "fans-at-chico-state-api",
+                      "dev",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/fans-at-chico-state-api-dev*:*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "secretsmanager:GetSecretValue"
+                      ],
+                      "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "fans-at-chico-state-api",
+                  "dev",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "ApiLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+              "S3Key": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z/fans-at-chico-state-api.zip"
+            },
+            "Handler": "src/lambda.handler",
+            "Runtime": "nodejs20.x",
+            "FunctionName": "fans-at-chico-state-api-dev-api",
+            "MemorySize": 521,
+            "Timeout": 30,
+            "Environment": {
+              "Variables": {
+                "SECRETS_ID": "<REDACTED>"
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "ApiLogGroup"
+          ]
+        },
+        "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "ApiLambdaFunction"
+            },
+            "CodeSha256": "bfJ9yHhKhEICNpptPuM37xbcm914IgbrEFCaYvy+GlQ="
+          }
+        },
+        "HttpApi": {
+          "Type": "AWS::ApiGatewayV2::Api",
+          "Properties": {
+            "Name": "dev-fans-at-chico-state-api",
+            "ProtocolType": "HTTP",
+            "CorsConfiguration": {
+              "AllowCredentials": "<REDACTED>",
+              "AllowHeaders": [
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With"
+              ],
+              "AllowMethods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+              ],
+              "AllowOrigins": [
+                "https://your-amplify-app-origin.example.com",
+                "https://localhost:5173",
+                "https://main.d2qxbewq57vyhq.amplifyapp.com"
+              ]
+            }
+          }
+        },
+        "HttpApiStage": {
+          "Type": "AWS::ApiGatewayV2::Stage",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "StageName": "$default",
+            "AutoDeploy": true,
+            "DefaultRouteSettings": {
+              "DetailedMetricsEnabled": false
+            }
+          }
+        },
+        "ApiLambdaPermissionHttpApi": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "ApiLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "apigateway.amazonaws.com",
+            "SourceArn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":execute-api:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  "/*"
+                ]
+              ]
+            }
+          }
+        },
+        "HttpApiIntegrationApi": {
+          "Type": "AWS::ApiGatewayV2::Integration",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": {
+              "Fn::GetAtt": [
+                "ApiLambdaFunction",
+                "Arn"
+              ]
+            },
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+          }
+        },
+        "HttpApiRouteAnyProxyVar": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "ANY /{proxy+}",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationApi"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationApi"
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
+          "Export": {
+            "Name": "sls-fans-at-chico-state-api-dev-ServerlessDeploymentBucketName"
+          }
+        },
+        "ApiLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
+          },
+          "Export": {
+            "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
+          }
+        },
+        "HttpApiId": {
+          "Description": "Id of the HTTP API",
+          "Value": {
+            "Ref": "HttpApi"
+          },
+          "Export": {
+            "Name": "sls-fans-at-chico-state-api-dev-HttpApiId"
+          }
+        },
+        "HttpApiUrl": {
+          "Description": "URL of the HTTP API",
+          "Value": {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Ref": "HttpApi"
+                },
+                ".execute-api.",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ".",
+                {
+                  "Ref": "AWS::URLSuffix"
+                }
+              ]
+            ]
+          },
+          "Export": {
+            "Name": "sls-fans-at-chico-state-api-dev-HttpApiUrl"
+          }
+        }
+      }
+    }
   }
 }

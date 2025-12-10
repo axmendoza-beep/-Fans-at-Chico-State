@@ -71,7 +71,7 @@
                   "Action": [
                     "secretsmanager:GetSecretValue"
                   ],
-                  "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:Fans-at-Chico-State/api/prod*"
+                  "Resource": "arn:aws:secretsmanager:us-west-1:*:secret:arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun*"
                 }
               ]
             }
@@ -98,7 +98,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-          "S3Key": "serverless/fans-at-chico-state-api/dev/1765262929634-2025-12-09T06:48:49.634Z/fans-at-chico-state-api.zip"
+          "S3Key": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z/fans-at-chico-state-api.zip"
         },
         "Handler": "src/lambda.handler",
         "Runtime": "nodejs20.x",
@@ -107,7 +107,7 @@
         "Timeout": 30,
         "Environment": {
           "Variables": {
-            "SECRETS_ID": "Fans-at-Chico-State/api/prod"
+            "SECRETS_ID": "arn:aws:secretsmanager:us-west-1:141814481357:secret:Fans-at-Chico-State/api/prod-tyHYun"
           }
         },
         "Role": {
@@ -121,14 +121,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionOIWnZeYQMfY9F3miSv5gSD0o76y39TjIMBHKsNJkelk": {
+    "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "4SlPTiRMb+PP3geB5VorwCi2dFO/3umUtcRl0dsNCMo="
+        "CodeSha256": "bfJ9yHhKhEICNpptPuM37xbcm914IgbrEFCaYvy+GlQ="
       }
     },
     "HttpApi": {
@@ -258,7 +258,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionOIWnZeYQMfY9F3miSv5gSD0o76y39TjIMBHKsNJkelk"
+        "Ref": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
       },
       "Export": {
         "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
