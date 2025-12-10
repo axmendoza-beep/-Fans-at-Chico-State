@@ -147,7 +147,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-                "S3Key": "serverless/fans-at-chico-state-api/dev/1765225246986-2025-12-08T20:20:46.986Z/fans-at-chico-state-api.zip"
+                "S3Key": "serverless/fans-at-chico-state-api/dev/1765262929634-2025-12-09T06:48:49.634Z/fans-at-chico-state-api.zip"
               },
               "Handler": "src/lambda.handler",
               "Runtime": "nodejs20.x",
@@ -170,14 +170,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersion9mXioXAVDz0bXRShsTYDtlrpqjwO8VROLuybvRhTE": {
+          "ApiLambdaVersionOIWnZeYQMfY9F3miSv5gSD0o76y39TjIMBHKsNJkelk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "/0YFFutTDaB1OtLPnaGyCJRs8wCz8ZGwzilCA5n4iGo="
+              "CodeSha256": "4SlPTiRMb+PP3geB5VorwCi2dFO/3umUtcRl0dsNCMo="
             }
           },
           "HttpApi": {
@@ -304,7 +304,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersion9mXioXAVDz0bXRShsTYDtlrpqjwO8VROLuybvRhTE"
+              "Ref": "ApiLambdaVersionOIWnZeYQMfY9F3miSv5gSD0o76y39TjIMBHKsNJkelk"
             },
             "Export": {
               "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
@@ -371,7 +371,7 @@
         "timeout": 30,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersion9mXioXAVDz0bXRShsTYDtlrpqjwO8VROLuybvRhTE"
+        "versionLogicalId": "ApiLambdaVersionOIWnZeYQMfY9F3miSv5gSD0o76y39TjIMBHKsNJkelk"
       }
     },
     "configValidationMode": "warn",
@@ -396,7 +396,7 @@
         "artifactsS3KeyDirname": "serverless/fans-at-chico-state-api/dev/code-artifacts",
         "deploymentBucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
         "artifact": "/Users/alexiamendoza/Desktop/Fans at Chico State/API/.serverless/fans-at-chico-state-api.zip",
-        "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765225246986-2025-12-08T20:20:46.986Z"
+        "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765262929634-2025-12-09T06:48:49.634Z"
       }
     },
     "appId": null,
@@ -406,7 +406,7 @@
   },
   "package": {
     "individually": false,
-    "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765225246986-2025-12-08T20:20:46.986Z",
+    "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765262929634-2025-12-09T06:48:49.634Z",
     "artifact": "fans-at-chico-state-api.zip"
   }
 }

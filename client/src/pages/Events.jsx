@@ -13,10 +13,8 @@ function Events() {
     start_time: '',
     description: '',
     host_email: '',
-    venue_id: '',
-    photo_url: ''
+    venue_id: ''
   });
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [createError, setCreateError] = useState(null);
 
   useEffect(() => {
@@ -72,24 +70,11 @@ function Events() {
         start_time: '',
         description: '',
         host_email: '',
-        venue_id: '',
-        photo_url: ''
+        venue_id: ''
       });
-      setSelectedPhoto(null);
       fetchEvents();
     } catch (err) {
       setCreateError('Failed to create event: ' + err.message);
-    }
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedPhoto(file);
-      // In a real app, you'd upload to a storage service (e.g., Supabase Storage)
-      // For now, we'll just create a local URL
-      const photoUrl = URL.createObjectURL(file);
-      setNewEvent({ ...newEvent, photo_url: photoUrl });
     }
   };
 
@@ -208,29 +193,6 @@ function Events() {
                 placeholder="Select a venue above or paste a Venue ID"
                 required
               />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Event Photo (optional):</label><br />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-              />
-              {selectedPhoto && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <small>Selected: {selectedPhoto.name}</small>
-                  {newEvent.photo_url && (
-                    <img 
-                      src={newEvent.photo_url} 
-                      alt="Preview" 
-                      style={{ display: 'block', maxWidth: '200px', marginTop: '0.5rem' }}
-                    />
-                  )}
-                </div>
-              )}
-              <small style={{ display: 'block', marginTop: '0.5rem', color: '#666' }}>
-                Upload a photo for your event (JPG, PNG, etc.)
-              </small>
             </div>
             <button type="submit">Create Event</button>
           </form>

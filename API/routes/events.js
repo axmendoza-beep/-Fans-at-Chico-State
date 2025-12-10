@@ -26,7 +26,8 @@ router.get('/', async (req, res) => {
 // POST /v1/events - Create a new event
 router.post('/', async (req, res) => {
   try {
-    const { host_email, ...rest } = req.body;
+    // Ignore optional fields that are not persisted in the events table (e.g., photo_url)
+    const { host_email, photo_url, ...rest } = req.body;
 
     if (!host_email) {
       return res.status(400).json({ error: 'host_email is required to create an event' });
