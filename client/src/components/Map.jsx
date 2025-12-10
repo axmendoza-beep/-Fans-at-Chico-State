@@ -81,12 +81,17 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
 
           const infoWindow = new window.google.maps.InfoWindow({
             content: `
-              <div style="padding: 10px;">
+              <div style="padding: 10px; max-width: 260px;">
                 <h3 style="margin: 0 0 10px 0;">${event.game_name}</h3>
                 <p style="margin: 5px 0;"><strong>Sport:</strong> ${event.sport}</p>
                 <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(event.start_time).toLocaleString()}</p>
                 <p style="margin: 5px 0;"><strong>Venue:</strong> ${event.venue.name}</p>
                 <p style="margin: 5px 0;"><strong>Host:</strong> ${event.host?.display_name || 'Unknown'}</p>
+                <div style="margin-top: 10px; text-align: right;">
+                  <a href="/events/${event.event_id}" style="color: #1976d2; text-decoration: underline; font-weight: 500;">
+                    View event details
+                  </a>
+                </div>
               </div>
             `
           });

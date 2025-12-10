@@ -423,11 +423,16 @@ function Search() {
           ) : (
             <div>
               {searchType === 'events' && filteredEvents.map((event) => (
-                <div key={event.event_id} style={{ 
-                  border: '1px solid #ddd', 
-                  padding: '1rem', 
-                  marginBottom: '1rem' 
-                }}>
+                <div
+                  key={event.event_id}
+                  style={{ 
+                    border: '1px solid #ddd', 
+                    padding: '1rem', 
+                    marginBottom: '1rem',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => navigate(`/events/${event.event_id}`)}
+                >
                   <h3>{event.game_name}</h3>
                   <p><strong>Sport:</strong> {event.sport}</p>
                   <p><strong>Time:</strong> {new Date(event.start_time).toLocaleString()}</p>
