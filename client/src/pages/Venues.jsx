@@ -16,6 +16,15 @@ function Venues() {
     latitude: '',
     longitude: ''
   });
+  const [editingVenueId, setEditingVenueId] = useState(null);
+  const [currentUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('currentUser');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     fetchVenues();
