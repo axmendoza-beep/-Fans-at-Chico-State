@@ -91,6 +91,24 @@ export const groupMessagesAPI = {
   delete: (id) => api.delete(`/group_messages/${id}`),
 };
 
+// Group Polls
+export const groupPollsAPI = {
+  getAll: () => api.get('/group_polls'),
+  getById: (id) => api.get(`/group_polls/${id}`),
+  create: (data) => api.post('/group_polls', data),
+  update: (id, data) => api.put(`/group_polls/${id}`, data),
+  delete: (id) => api.delete(`/group_polls/${id}`),
+};
+
+// Group Poll Votes
+export const groupPollVotesAPI = {
+  getAll: () => api.get('/group_poll_votes'),
+  getById: (id) => api.get(`/group_poll_votes/${id}`),
+  create: (data) => api.post('/group_poll_votes', data),
+  update: (id, data) => api.put(`/group_poll_votes/${id}`, data),
+  delete: (id) => api.delete(`/group_poll_votes/${id}`),
+};
+
 // Reports
 export const reportsAPI = {
   getAll: () => api.get('/reports'),

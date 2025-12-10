@@ -27,6 +27,7 @@ const groupMessagesRouter = require('./routes/group_messages');
 const announcementsRouter = require('./routes/announcements');
 const groupPollsRouter = require('./routes/group_polls');
 const groupPollVotesRouter = require('./routes/group_poll_votes');
+const pollClosedNotifyRouter = require('./routes/poll_closed_notify');
 const reportsRouter = require('./routes/reports');
 
 // Health check endpoint
@@ -56,6 +57,7 @@ app.use('/v1/announcements', announcementsRouter);
 app.use('/v1/group_polls', groupPollsRouter);
 app.use('/v1/group_poll_votes', groupPollVotesRouter);
 app.use('/v1/reports', reportsRouter);
+app.use('/v1/poll_closed_notify', pollClosedNotifyRouter);
 
 // 404 handler
 app.use((req, res) => {
