@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { eventsAPI, groupsAPI, venuesAPI } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { eventsAPI, groupsAPI, venuesAPI, groupMembershipsAPI } from '../lib/api';
 import Map from '../components/Map';
 
 function Search() {
+  const navigate = useNavigate();
   const [searchType, setSearchType] = useState('events');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [events, setEvents] = useState([]);
@@ -10,6 +12,7 @@ function Search() {
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [groupMemberships, setGroupMemberships] = useState([]);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -22,6 +25,33 @@ function Search() {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const loadMemberships = async () => {
+      let currentUser = null;
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          currentUser = JSON.parse(stored);
+        } catch {
+          currentUser = null;
+        }
+      }
+
+      if (!currentUser || !currentUser.user_id) {
+        return;
+      }
+
+      try {
+        const res = await groupMembershipsAPI.getForUser(currentUser.user_id);
+        setGroupMemberships(res.data || []);
+      } catch (err) {
+        console.error('Failed to load group memberships for search page', err);
+      }
+    };
+
+    loadMemberships();
   }, []);
 
   // When switching into map view or between Events/Venues tabs while in map view,
@@ -103,12 +133,91 @@ function Search() {
     });
   };
 
+  const handleJoinGroup = async (groupId) => {
+    let currentUser = null;
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      try {
+        currentUser = JSON.parse(stored);
+      } catch {
+        currentUser = null;
+      }
+    }
+
+    if (!currentUser || !currentUser.user_id) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await groupMembershipsAPI.create({
+        group_id: groupId,
+        user_id: currentUser.user_id,
+        role: 'member',
+      });
+      alert('Joined group successfully!');
+      if (res.data) {
+        setGroupMemberships((prev) => [...prev, res.data]);
+      }
+    } catch (err) {
+      alert('Failed to join group: ' + err.message);
+    }
+  };
+
+  const handleLeaveGroup = async (groupId) => {
+    let currentUser = null;
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      try {
+        currentUser = JSON.parse(stored);
+      } catch {
+        currentUser = null;
+      }
+    }
+
+    if (!currentUser || !currentUser.user_id) {
+      navigate('/login');
+      return;
+    }
+
+    const membership = groupMemberships.find(
+      (m) => m.group_id === groupId && m.user_id === currentUser.user_id,
+    );
+    if (!membership) {
+      return;
+    }
+
+    try {
+      await groupMembershipsAPI.delete(membership.membership_id);
+      setGroupMemberships((prev) => prev.filter((m) => m.membership_id !== membership.membership_id));
+      alert('Left group successfully.');
+    } catch (err) {
+      alert('Failed to leave group: ' + err.message);
+    }
+  };
+
   if (loading) return <div>Loading search data...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   const displayData = searchType === 'events' ? filteredEvents :
                       searchType === 'groups' ? filteredGroups :
                       filteredVenues;
+
+  // For the map view, ensure events carry venue location data so red pins can render.
+  const eventsForMap = filteredEvents.map((event) => {
+    // If event already has a venue with coordinates, use it as-is
+    if (event.venue && event.venue.latitude && event.venue.longitude) {
+      return event;
+    }
+
+    // Otherwise, try to find the venue by venue_id from the loaded venues list
+    const matchingVenue = venues.find((v) => v.venue_id === event.venue_id);
+    if (matchingVenue) {
+      return { ...event, venue: matchingVenue };
+    }
+
+    return event;
+  });
 
   return (
     <div>
@@ -338,6 +447,54 @@ function Search() {
                   <h3>{group.name}</h3>
                   <p><strong>Sport:</strong> {group.sport}</p>
                   <p><strong>Description:</strong> {group.description || 'No description'}</p>
+                  {groupMemberships.some((m) => m.group_id === group.group_id) ? (
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#e8f5e9',
+                        color: '#2e7d32',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                      }}>
+                        Joined
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleLeaveGroup(group.group_id)}
+                        style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '4px',
+                          border: '1px solid #c62828',
+                          backgroundColor: '#ffffff',
+                          color: '#c62828',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        Leave
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleJoinGroup(group.group_id)}
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '4px',
+                        border: '1px solid #1976d2',
+                        backgroundColor: '#1976d2',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Join Group
+                    </button>
+                  )}
                 </div>
               ))}
 
@@ -376,7 +533,7 @@ function Search() {
           ) : (
             <Map 
               venues={searchType === 'venues' ? filteredVenues : []}
-              events={searchType === 'events' ? filteredEvents : []}
+              events={searchType === 'events' ? eventsForMap : []}
               center={{ lat: 39.7285, lng: -121.8375 }}
             />
           )}

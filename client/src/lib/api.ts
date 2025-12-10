@@ -75,6 +75,7 @@ export const groupsAPI = {
 // Group Memberships
 export const groupMembershipsAPI = {
   getAll: () => api.get('/group_memberships'),
+  getForUser: (userId: string) => api.get('/group_memberships', { params: { user_id: userId } }),
   getById: (id) => api.get(`/group_memberships/${id}`),
   create: (data) => api.post('/group_memberships', data),
   update: (id, data) => api.put(`/group_memberships/${id}`, data),

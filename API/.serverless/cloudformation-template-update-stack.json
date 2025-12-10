@@ -98,7 +98,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-          "S3Key": "serverless/fans-at-chico-state-api/dev/1765355488675-2025-12-10T08:31:28.675Z/fans-at-chico-state-api.zip"
+          "S3Key": "serverless/fans-at-chico-state-api/dev/1765385669718-2025-12-10T16:54:29.718Z/fans-at-chico-state-api.zip"
         },
         "Handler": "src/lambda.handler",
         "Runtime": "nodejs20.x",
@@ -121,14 +121,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I": {
+    "ApiLambdaVersion8JNtLYqEyuIHqJqwUYTs1AbVcuZn5KYPGg6AqJc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "bfJ9yHhKhEICNpptPuM37xbcm914IgbrEFCaYvy+GlQ="
+        "CodeSha256": "lGyMRq651uzmP9/OrXnqoEwjEAeohPU7OZAf/O1f6nk="
       }
     },
     "HttpApi": {
@@ -258,7 +258,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionVbYkvolrHMo7g94uiVGduTfJirgOPaqbStiiOOn0I"
+        "Ref": "ApiLambdaVersion8JNtLYqEyuIHqJqwUYTs1AbVcuZn5KYPGg6AqJc"
       },
       "Export": {
         "Name": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"

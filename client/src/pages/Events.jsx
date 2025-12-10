@@ -18,6 +18,7 @@ function Events() {
     venue_id: ''
   });
   const [createError, setCreateError] = useState(null);
+  const [editingEventId, setEditingEventId] = useState(null);
   const [currentUser] = useState(() => {
     try {
       const raw = localStorage.getItem('currentUser');
@@ -84,7 +85,7 @@ function Events() {
     }
   };
 
-  const handleCreateEvent = async (e) => {
+  const handleCreateOrUpdateEvent = async (e) => {
     e.preventDefault();
     setCreateError(null);
 
@@ -100,9 +101,16 @@ function Events() {
     }
 
     try {
-      await eventsAPI.create(newEvent);
-      alert('Event created successfully!');
+      if (editingEventId) {
+        const { host_email, ...updatePayload } = newEvent;
+        await eventsAPI.update(editingEventId, updatePayload);
+        alert('Event updated successfully!');
+      } else {
+        await eventsAPI.create(newEvent);
+        alert('Event created successfully!');
+      }
       setShowCreateForm(false);
+      setEditingEventId(null);
       setNewEvent({
         sport: '',
         game_name: '',
@@ -114,6 +122,44 @@ function Events() {
       fetchEvents();
     } catch (err) {
       setCreateError('Failed to create event: ' + err.message);
+    }
+  };
+
+  const startEditEvent = (event) => {
+    if (!currentUser || currentUser.user_id !== event.host_user_id) {
+      return;
+    }
+
+    setShowCreateForm(true);
+    setEditingEventId(event.event_id);
+    setCreateError(null);
+
+    setNewEvent({
+      sport: event.sport || '',
+      game_name: event.game_name || '',
+      start_time: event.start_time
+        ? new Date(event.start_time).toISOString().slice(0, 16)
+        : '',
+      description: event.description || '',
+      host_email: event.host?.email || '',
+      venue_id: event.venue_id || '',
+    });
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    const event = events.find((e) => e.event_id === eventId);
+    if (!event || !currentUser || currentUser.user_id !== event.host_user_id) {
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to delete this event?');
+    if (!confirmed) return;
+
+    try {
+      await eventsAPI.delete(eventId);
+      setEvents((prev) => prev.filter((e) => e.event_id !== eventId));
+    } catch (err) {
+      alert('Failed to delete event: ' + err.message);
     }
   };
 
@@ -191,13 +237,25 @@ function Events() {
       <h1>Events</h1>
       <p>Browse upcoming watch parties, vote on what looks fun, and open an event to see full details.</p>
 
-      <button onClick={() => setShowCreateForm(!showCreateForm)}>
+      <button onClick={() => {
+        setShowCreateForm(!showCreateForm);
+        setEditingEventId(null);
+        setCreateError(null);
+        setNewEvent({
+          sport: '',
+          game_name: '',
+          start_time: '',
+          description: '',
+          host_email: '',
+          venue_id: ''
+        });
+      }}>
         {showCreateForm ? 'Cancel' : 'Create New Event'}
       </button>
 
       {showCreateForm && (
         <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
-          <h2>Create New Event</h2>
+          <h2>{editingEventId ? 'Edit Event' : 'Create New Event'}</h2>
           {createError && (
             <div style={{
               padding: '0.75rem 1rem',
@@ -209,7 +267,7 @@ function Events() {
               {createError}
             </div>
           )}
-          <form onSubmit={handleCreateEvent}>
+          <form onSubmit={handleCreateOrUpdateEvent}>
             <div style={{ marginBottom: '1rem' }}>
               <label>Sport:</label><br />
               <input
@@ -283,7 +341,7 @@ function Events() {
                 required
               />
             </div>
-            <button type="submit">Create Event</button>
+            <button type="submit">{editingEventId ? 'Save Changes' : 'Create Event'}</button>
           </form>
         </div>
       )}
@@ -294,103 +352,138 @@ function Events() {
           <p>No events found. Create one to get started!</p>
         ) : (
           <div>
-            {sortedEvents.map((event) => (
-              <div
-                key={event.event_id}
-                style={{ 
-                  border: '1px solid #ddd', 
-                  padding: '1rem', 
-                  marginBottom: '1rem',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  cursor: 'pointer',
-                  backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : 'white',
-                }}
-                onClick={() =>
-                  navigate(`/events/${event.event_id}`, {
-                    state: { userVote: votes[event.event_id] || 0 },
-                  })
-                }
-              >
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
-                    {event.game_name}
-                  </h3>
-                  <p style={{ margin: '0.25rem 0', color: '#555' }}>
-                    <strong>Sport:</strong> {event.sport}
-                  </p>
-                  <p style={{ margin: '0.25rem 0', color: '#555' }}>
-                    <strong>Start:</strong> {new Date(event.start_time).toLocaleString()}
-                  </p>
-                  {event.venue && (
-                    <p style={{ margin: '0.25rem 0', color: '#555' }}>
-                      <strong>Venue:</strong> {event.venue.name} ({event.venue.type})
-                    </p>
-                  )}
-                </div>
+            {sortedEvents.map((event) => {
+              const isOwner = currentUser && currentUser.user_id === event.host_user_id;
+              return (
                 <div
-                  style={{
+                  key={event.event_id}
+                  style={{ 
+                    border: '1px solid #ddd', 
+                    padding: '1rem', 
+                    marginBottom: '1rem',
+                    borderRadius: '8px',
                     display: 'flex',
-                    flexDirection: 'column',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-end',
-                    minWidth: '120px',
+                    gap: '1rem',
+                    cursor: 'pointer',
+                    backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : 'white',
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={() =>
+                    navigate(`/events/${event.event_id}`, {
+                      state: { userVote: votes[event.event_id] || 0 },
+                    })
+                  }
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => toggleVote(event.event_id, 1)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        border: votes[event.event_id] === 1 ? '2px solid #2e7d32' : '1px solid #ccc',
-                        backgroundColor: votes[event.event_id] === 1 ? '#e8f5e9' : '#ffffff',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      ▲ Upvote
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleVote(event.event_id, -1)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        border: votes[event.event_id] === -1 ? '2px solid #c62828' : '1px solid #ccc',
-                        backgroundColor: votes[event.event_id] === -1 ? '#ffebee' : '#ffffff',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      ▼ Downvote
-                    </button>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+                      {event.game_name}
+                    </h3>
+                    <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                      <strong>Sport:</strong> {event.sport}
+                    </p>
+                    <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                      <strong>Start:</strong> {new Date(event.start_time).toLocaleString()}
+                    </p>
+                    {event.venue && (
+                      <p style={{ margin: '0.25rem 0', color: '#555' }}>
+                        <strong>Venue:</strong> {event.venue.name} ({event.venue.type})
+                      </p>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleSave(event.event_id)}
+                  <div
                     style={{
-                      marginTop: '0.5rem',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '4px',
-                      border: savedEvents.includes(event.event_id) ? '2px solid #6a1b9a' : '1px solid #ccc',
-                      backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : '#ffffff',
-                      cursor: 'pointer',
-                      fontSize: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                      minWidth: '120px',
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {savedEvents.includes(event.event_id) ? 'Saved' : 'Save'}
-                  </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleVote(event.event_id, 1)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: votes[event.event_id] === 1 ? '2px solid #2e7d32' : '1px solid #ccc',
+                          backgroundColor: votes[event.event_id] === 1 ? '#e8f5e9' : '#ffffff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ▲ Upvote
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleVote(event.event_id, -1)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: votes[event.event_id] === -1 ? '2px solid #c62828' : '1px solid #ccc',
+                          backgroundColor: votes[event.event_id] === -1 ? '#ffebee' : '#ffffff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ▼ Downvote
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleSave(event.event_id)}
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '4px',
+                        border: savedEvents.includes(event.event_id) ? '2px solid #6a1b9a' : '1px solid #ccc',
+                        backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : '#ffffff',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      {savedEvents.includes(event.event_id) ? 'Saved' : 'Save'}
+                    </button>
+                    {isOwner && (
+                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => startEditEvent(event)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #1976d2',
+                            backgroundColor: '#e3f2fd',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEvent(event.event_id)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #c62828',
+                            backgroundColor: '#ffebee',
+                            cursor: 'pointer',
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default Events;

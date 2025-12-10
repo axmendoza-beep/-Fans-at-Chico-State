@@ -12,7 +12,9 @@ function Venues() {
     address: '',
     food_options: '',
     parking_notes: '',
-    atmosphere_rating: 3
+    atmosphere_rating: 3,
+    latitude: '',
+    longitude: ''
   });
 
   useEffect(() => {
@@ -32,23 +34,98 @@ function Venues() {
     }
   };
 
-  const handleCreateVenue = async (e) => {
+  const handleCreateOrUpdateVenue = async (e) => {
     e.preventDefault();
     try {
-      await venuesAPI.create(newVenue);
-      alert('Venue created successfully!');
+      let latitude = newVenue.latitude;
+      let longitude = newVenue.longitude;
+
+      // If Google Maps is available and we have an address, try to geocode it
+      if (window.google && window.google.maps && newVenue.address && (!latitude || !longitude)) {
+        const geocoder = new window.google.maps.Geocoder();
+
+        const geocodeResult = await new Promise((resolve, reject) => {
+          geocoder.geocode({ address: newVenue.address }, (results, status) => {
+            if (status === 'OK' && results && results[0]) {
+              resolve(results[0]);
+            } else {
+              reject(new Error('Geocoding failed: ' + status));
+            }
+          });
+        });
+
+        if (geocodeResult && geocodeResult.geometry && geocodeResult.geometry.location) {
+          latitude = geocodeResult.geometry.location.lat();
+          longitude = geocodeResult.geometry.location.lng();
+        }
+      }
+
+      const payload = {
+        ...newVenue,
+        latitude,
+        longitude,
+        creator_user_id: currentUser ? currentUser.user_id : undefined,
+      };
+
+      if (editingVenueId) {
+        await venuesAPI.update(editingVenueId, payload);
+        alert('Venue updated successfully!');
+      } else {
+        await venuesAPI.create(payload);
+        alert('Venue created successfully!');
+      }
       setShowCreateForm(false);
+      setEditingVenueId(null);
       setNewVenue({
         name: '',
         type: 'lounge',
         address: '',
         food_options: '',
         parking_notes: '',
-        atmosphere_rating: 3
+        atmosphere_rating: 3,
+        latitude: '',
+        longitude: ''
       });
       fetchVenues();
     } catch (err) {
-      alert('Failed to create venue: ' + err.message);
+      alert('Failed to save venue: ' + err.message);
+    }
+  };
+
+  const startEditVenue = (venue) => {
+    if (!currentUser || currentUser.user_id !== venue.creator_user_id) {
+      return;
+    }
+
+    setShowCreateForm(true);
+    setEditingVenueId(venue.venue_id);
+
+    setNewVenue({
+      name: venue.name || '',
+      type: venue.type || 'lounge',
+      address: venue.address || '',
+      food_options: venue.food_options || '',
+      parking_notes: venue.parking_notes || '',
+      atmosphere_rating: venue.atmosphere_rating || 3,
+      latitude: venue.latitude || '',
+      longitude: venue.longitude || '',
+    });
+  };
+
+  const handleDeleteVenue = async (venueId) => {
+    const venue = venues.find((v) => v.venue_id === venueId);
+    if (!venue || !currentUser || currentUser.user_id !== venue.creator_user_id) {
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to delete this venue?');
+    if (!confirmed) return;
+
+    try {
+      await venuesAPI.delete(venueId);
+      setVenues((prev) => prev.filter((v) => v.venue_id !== venueId));
+    } catch (err) {
+      alert('Failed to delete venue: ' + err.message);
     }
   };
 
@@ -60,14 +137,29 @@ function Venues() {
       <h1>Venues</h1>
       <p>Discover great locations for watch parties</p>
 
-      <button onClick={() => setShowCreateForm(!showCreateForm)}>
+      <button
+        onClick={() => {
+          setShowCreateForm(!showCreateForm);
+          setEditingVenueId(null);
+          setNewVenue({
+            name: '',
+            type: 'lounge',
+            address: '',
+            food_options: '',
+            parking_notes: '',
+            atmosphere_rating: 3,
+            latitude: '',
+            longitude: ''
+          });
+        }}
+      >
         {showCreateForm ? 'Cancel' : 'Add New Venue'}
       </button>
 
       {showCreateForm && (
         <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
-          <h2>Add New Venue</h2>
-          <form onSubmit={handleCreateVenue}>
+          <h2>{editingVenueId ? 'Edit Venue' : 'Add New Venue'}</h2>
+          <form onSubmit={handleCreateOrUpdateVenue}>
             <div style={{ marginBottom: '1rem' }}>
               <label>Name:</label><br />
               <input
@@ -114,6 +206,26 @@ function Venues() {
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
+              <label>Latitude:</label><br />
+              <input
+                type="number"
+                step="0.000001"
+                value={newVenue.latitude}
+                onChange={(e) => setNewVenue({ ...newVenue, latitude: e.target.value })}
+                placeholder="39.7285"
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Longitude:</label><br />
+              <input
+                type="number"
+                step="0.000001"
+                value={newVenue.longitude}
+                onChange={(e) => setNewVenue({ ...newVenue, longitude: e.target.value })}
+                placeholder="-121.8375"
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
               <label>Atmosphere Rating (1-5):</label><br />
               <input
                 type="number"
@@ -123,7 +235,7 @@ function Venues() {
                 onChange={(e) => setNewVenue({ ...newVenue, atmosphere_rating: parseInt(e.target.value) })}
               />
             </div>
-            <button type="submit">Add Venue</button>
+            <button type="submit">{editingVenueId ? 'Save Changes' : 'Add Venue'}</button>
           </form>
         </div>
       )}
@@ -134,21 +246,56 @@ function Venues() {
           <p>No venues found. Add one to get started!</p>
         ) : (
           <div>
-            {venues.map((venue) => (
-              <div key={venue.venue_id} style={{ 
-                border: '1px solid #ddd', 
-                padding: '1rem', 
-                marginBottom: '1rem' 
-              }}>
-                <h3>{venue.name}</h3>
-                <p><strong>Venue ID:</strong> {venue.venue_id}</p>
-                <p><strong>Type:</strong> {venue.type}</p>
-                <p><strong>Address:</strong> {venue.address || 'Not specified'}</p>
-                <p><strong>Food Options:</strong> {venue.food_options || 'None listed'}</p>
-                <p><strong>Parking:</strong> {venue.parking_notes || 'No info'}</p>
-                <p><strong>Atmosphere:</strong> {'⭐'.repeat(venue.atmosphere_rating || 0)}</p>
-              </div>
-            ))}
+            {venues.map((venue) => {
+              const isOwner = currentUser && currentUser.user_id === venue.creator_user_id;
+              return (
+                <div key={venue.venue_id} style={{ 
+                  border: '1px solid #ddd', 
+                  padding: '1rem', 
+                  marginBottom: '1rem' 
+                }}>
+                  <h3>{venue.name}</h3>
+                  <p><strong>Venue ID:</strong> {venue.venue_id}</p>
+                  <p><strong>Type:</strong> {venue.type}</p>
+                  <p><strong>Address:</strong> {venue.address || 'Not specified'}</p>
+                  <p><strong>Food Options:</strong> {venue.food_options || 'None listed'}</p>
+                  <p><strong>Parking:</strong> {venue.parking_notes || 'No info'}</p>
+                  <p><strong>Atmosphere:</strong> {'⭐'.repeat(venue.atmosphere_rating || 0)}</p>
+                  {isOwner && (
+                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => startEditVenue(venue)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid #1976d2',
+                          backgroundColor: '#e3f2fd',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteVenue(venue.venue_id)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid #c62828',
+                          backgroundColor: '#ffebee',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

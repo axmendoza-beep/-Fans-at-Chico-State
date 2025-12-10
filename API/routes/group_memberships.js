@@ -9,8 +9,7 @@ router.get('/', async (req, res) => {
 
     let query = supabase
       .from('group_memberships')
-      .select('*')
-      .order('joined_at', { ascending: false });
+      .select('*');
 
     if (userId) {
       query = query.eq('user_id', userId);
