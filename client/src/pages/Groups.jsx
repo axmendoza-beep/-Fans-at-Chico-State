@@ -243,6 +243,10 @@ function Groups() {
       loadMessagesForGroup(selectedGroupId);
       loadPollsForGroup(selectedGroupId);
     } catch (err) {
+      console.error('Failed to send group message', err);
+      if (err && err.response) {
+        console.error('Backend response for group message error:', err.response.data);
+      }
       alert('Failed to send message: ' + err.message);
     }
   };
