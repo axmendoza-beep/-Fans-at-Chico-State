@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { eventsAPI, rsvpsAPI, eventVotesAPI } from '../lib/api';
 
 function EventDetails() {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state || {};
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,6 +20,7 @@ function EventDetails() {
     }
   });
   const [voteSummary, setVoteSummary] = useState({ up: 0, down: 0 });
+  const [userVote, setUserVote] = useState(() => locationState.userVote ?? 0); // 1 | -1 | 0
 
   useEffect(() => {
     const load = async () => {
@@ -29,11 +32,16 @@ function EventDetails() {
           const votesResponse = await eventVotesAPI.getForEvent(eventId);
           let up = 0;
           let down = 0;
+          let myVote = 0;
           votesResponse.data.forEach((vote) => {
             if (vote.value === 1) up += 1;
             if (vote.value === -1) down += 1;
+            if (currentUser && vote.user_id === currentUser.user_id) {
+              myVote = vote.value;
+            }
           });
           setVoteSummary({ up, down });
+          setUserVote(myVote);
         } catch (voteErr) {
           console.error('Failed to load event vote summary', voteErr);
         }
@@ -46,7 +54,7 @@ function EventDetails() {
     };
 
     load();
-  }, [eventId]);
+  }, [eventId, currentUser]);
 
   const handleRSVP = async () => {
     setRsvpMessage('');
@@ -67,6 +75,44 @@ function EventDetails() {
       setRsvpMessage('RSVP successful!');
     } catch (err) {
       setRsvpMessage('Failed to RSVP: ' + err.message);
+    }
+  };
+
+  const handleVote = async (value) => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    // Toggle behavior: clicking the same value clears the vote
+    const previous = userVote || 0;
+    const nextValue = previous === value ? 0 : value;
+
+    // Update summary counts optimistically
+    setVoteSummary((prev) => {
+      let { up, down } = prev;
+
+      // Remove previous vote effect
+      if (previous === 1) up -= 1;
+      if (previous === -1) down -= 1;
+
+      // Apply next vote effect
+      if (nextValue === 1) up += 1;
+      if (nextValue === -1) down += 1;
+
+      return { up, down };
+    });
+
+    setUserVote(nextValue);
+
+    try {
+      await eventVotesAPI.setVote({
+        event_id: eventId,
+        user_id: currentUser.user_id,
+        value: nextValue,
+      });
+    } catch (err) {
+      console.error('Failed to update vote from event details', err);
     }
   };
 
@@ -110,6 +156,36 @@ function EventDetails() {
           ? 'No votes yet'
           : `${voteSummary.up} up / ${voteSummary.down} down (${voteSummary.up >= voteSummary.down ? 'mostly upvotes' : 'mostly downvotes'})`}
       </p>
+      {currentUser && (
+        <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={() => handleVote(1)}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: userVote === 1 ? '2px solid #2e7d32' : '1px solid #ccc',
+              backgroundColor: userVote === 1 ? '#e8f5e9' : '#ffffff',
+              cursor: 'pointer',
+            }}
+          >
+            ▲ Upvote
+          </button>
+          <button
+            type="button"
+            onClick={() => handleVote(-1)}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: userVote === -1 ? '2px solid #c62828' : '1px solid #ccc',
+              backgroundColor: userVote === -1 ? '#ffebee' : '#ffffff',
+              cursor: 'pointer',
+            }}
+          >
+            ▼ Downvote
+          </button>
+        </div>
+      )}
       <p style={{ margin: '0.25rem 0', color: '#555' }}>
         <strong>Date:</strong> {dateString}
       </p>

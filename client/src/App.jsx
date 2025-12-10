@@ -26,13 +26,22 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const hasUser = !!localStorage.getItem('currentUser');
+
   return (
     <Router>
       <div style={{ fontFamily: 'Arial, sans-serif' }}>
-        <Navigation />
+        {hasUser && <Navigation />}
         <div style={{ padding: '0 2rem 4.5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route
+              path="/"
+              element={(
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              )}
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/verify-otp" element={<OtpVerify />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
@@ -132,6 +141,7 @@ function App() {
                 </ProtectedRoute>
               )}
             />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </div>
       </div>

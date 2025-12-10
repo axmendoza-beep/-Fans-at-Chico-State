@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
 
   useEffect(() => {
     // Check if Google Maps is loaded
@@ -11,7 +12,7 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
       return;
     }
 
-    // Initialize map
+    // Initialize map once
     if (!mapInstanceRef.current && mapRef.current) {
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         center: center,
@@ -21,11 +22,19 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
       });
     }
 
-    // Clear existing markers
-    if (mapInstanceRef.current) {
-      // Add venue markers
-      venues?.forEach((venue) => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing markers from map
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current = [];
+
+    const bounds = new window.google.maps.LatLngBounds();
+
+    // Add venue markers
+    venues?.forEach((venue) => {
         if (venue.latitude && venue.longitude) {
+          const position = { lat: Number(venue.latitude), lng: Number(venue.longitude) };
+
           const marker = new window.google.maps.Marker({
             position: { lat: venue.latitude, lng: venue.longitude },
             map: mapInstanceRef.current,
@@ -51,14 +60,18 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
           marker.addListener('click', () => {
             infoWindow.open(mapInstanceRef.current, marker);
           });
+          markersRef.current.push(marker);
+          bounds.extend(position);
         }
       });
 
-      // Add event markers
-      events?.forEach((event) => {
+    // Add event markers
+    events?.forEach((event) => {
         if (event.venue?.latitude && event.venue?.longitude) {
+          const position = { lat: Number(event.venue.latitude), lng: Number(event.venue.longitude) };
+
           const marker = new window.google.maps.Marker({
-            position: { lat: event.venue.latitude, lng: event.venue.longitude },
+            position,
             map: mapInstanceRef.current,
             title: event.game_name,
             icon: {
@@ -81,8 +94,17 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
           marker.addListener('click', () => {
             infoWindow.open(mapInstanceRef.current, marker);
           });
+          markersRef.current.push(marker);
+          bounds.extend(position);
         }
       });
+
+    // Fit map to bounds of all markers, or fall back to default center
+    if (!bounds.isEmpty()) {
+      mapInstanceRef.current.fitBounds(bounds);
+    } else {
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setZoom(14);
     }
   }, [venues, events, center]);
 

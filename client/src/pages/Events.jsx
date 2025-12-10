@@ -308,7 +308,11 @@ function Events() {
                   cursor: 'pointer',
                   backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : 'white',
                 }}
-                onClick={() => navigate(`/events/${event.event_id}`)}
+                onClick={() =>
+                  navigate(`/events/${event.event_id}`, {
+                    state: { userVote: votes[event.event_id] || 0 },
+                  })
+                }
               >
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
