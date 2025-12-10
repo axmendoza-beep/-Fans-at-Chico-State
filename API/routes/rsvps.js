@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 
-// GET /v1/rsvps - List all RSVPs
+// GET /v1/rsvps - List all RSVPs (optionally filtered by user_id)
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { user_id: userId } = req.query;
+
+    let query = supabase
       .from('rsvps')
       .select(`
         *,
@@ -13,6 +15,12 @@ router.get('/', async (req, res) => {
         user:profiles(user_id, display_name, email)
       `)
       .order('created_at', { ascending: false });
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { eventsAPI, rsvpsAPI } from '../lib/api';
+import { eventsAPI, rsvpsAPI, eventVotesAPI } from '../lib/api';
 
 function EventDetails() {
   const { eventId } = useParams();
@@ -17,6 +17,7 @@ function EventDetails() {
       return null;
     }
   });
+  const [voteSummary, setVoteSummary] = useState({ up: 0, down: 0 });
 
   useEffect(() => {
     const load = async () => {
@@ -24,6 +25,18 @@ function EventDetails() {
         setLoading(true);
         const response = await eventsAPI.getById(eventId);
         setEvent(response.data);
+        try {
+          const votesResponse = await eventVotesAPI.getForEvent(eventId);
+          let up = 0;
+          let down = 0;
+          votesResponse.data.forEach((vote) => {
+            if (vote.value === 1) up += 1;
+            if (vote.value === -1) down += 1;
+          });
+          setVoteSummary({ up, down });
+        } catch (voteErr) {
+          console.error('Failed to load event vote summary', voteErr);
+        }
         setError(null);
       } catch (err) {
         setError('Failed to load event: ' + err.message);
@@ -87,12 +100,15 @@ function EventDetails() {
           cursor: 'pointer',
         }}
       >
-        1 Back
+        ← Back to Events
       </button>
-
-      <h1 style={{ marginTop: 0 }}>{event.game_name}</h1>
-      <p style={{ margin: '0.25rem 0', color: '#555' }}>
-        <strong>Sport:</strong> {event.sport}
+      <h1>{event.game_name}</h1>
+      <p><strong>Sport:</strong> {event.sport}</p>
+      <p>
+        <strong>Score:</strong>{' '}
+        {voteSummary.up + voteSummary.down === 0
+          ? 'No votes yet'
+          : `${voteSummary.up} up / ${voteSummary.down} down (${voteSummary.up >= voteSummary.down ? 'mostly upvotes' : 'mostly downvotes'})`}
       </p>
       <p style={{ margin: '0.25rem 0', color: '#555' }}>
         <strong>Date:</strong> {dateString}

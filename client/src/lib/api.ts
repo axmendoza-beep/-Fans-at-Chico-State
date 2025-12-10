@@ -12,6 +12,7 @@ const api = axios.create({
 // Events
 export const eventsAPI = {
   getAll: () => api.get('/events'),
+  getByHost: (hostUserId: string) => api.get('/events', { params: { host_user_id: hostUserId } }),
   getById: (id) => api.get(`/events/${id}`),
   create: (data) => api.post('/events', data),
   update: (id, data) => api.put(`/events/${id}`, data),
@@ -21,6 +22,7 @@ export const eventsAPI = {
 // Event Votes
 export const eventVotesAPI = {
   getForUser: (userId: string) => api.get('/event_votes', { params: { user_id: userId } }),
+  getForEvent: (eventId: string) => api.get('/event_votes', { params: { event_id: eventId } }),
   setVote: (data: { event_id: string; user_id: string; value: number }) => api.post('/event_votes', data),
 };
 
@@ -36,6 +38,7 @@ export const venuesAPI = {
 // RSVPs
 export const rsvpsAPI = {
   getAll: () => api.get('/rsvps'),
+  getForUser: (userId: string) => api.get('/rsvps', { params: { user_id: userId } }),
   getById: (id) => api.get(`/rsvps/${id}`),
   create: (data) => api.post('/rsvps', data),
   update: (id, data) => api.put(`/rsvps/${id}`, data),

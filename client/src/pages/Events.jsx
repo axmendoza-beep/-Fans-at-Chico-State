@@ -174,6 +174,18 @@ function Events() {
   if (loading) return <div>Loading events...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
+  // Reorder events so that saved events for this user appear at the top
+  const sortedEvents = [...events].sort((a, b) => {
+    const aSaved = savedEvents.includes(a.event_id);
+    const bSaved = savedEvents.includes(b.event_id);
+
+    if (aSaved && !bSaved) return -1;
+    if (!aSaved && bSaved) return 1;
+
+    // If both are saved or both are not, keep chronological order by start_time
+    return new Date(a.start_time) - new Date(b.start_time);
+  });
+
   return (
     <div>
       <h1>Events</h1>
@@ -282,7 +294,7 @@ function Events() {
           <p>No events found. Create one to get started!</p>
         ) : (
           <div>
-            {events.map((event) => (
+            {sortedEvents.map((event) => (
               <div
                 key={event.event_id}
                 style={{ 

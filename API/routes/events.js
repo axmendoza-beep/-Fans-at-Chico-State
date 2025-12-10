@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 
-// GET /v1/events - List all events
+// GET /v1/events - List all events (optionally filtered by host_user_id)
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { host_user_id: hostUserId } = req.query;
+
+    let query = supabase
       .from('events')
       .select(`
         *,
@@ -13,6 +15,12 @@ router.get('/', async (req, res) => {
         host:profiles!events_host_user_id_fkey(user_id, display_name, email)
       `)
       .order('start_time', { ascending: true });
+
+    if (hostUserId) {
+      query = query.eq('host_user_id', hostUserId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

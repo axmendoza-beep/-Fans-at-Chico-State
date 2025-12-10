@@ -5,7 +5,7 @@ const supabase = require('../config/supabase');
 // GET /v1/event_votes - list votes, optionally filtered by user_id
 router.get('/', async (req, res) => {
   try {
-    const { user_id: userId } = req.query;
+    const { user_id: userId, event_id: eventId } = req.query;
 
     let query = supabase
       .from('event_votes')
@@ -13,6 +13,10 @@ router.get('/', async (req, res) => {
 
     if (userId) {
       query = query.eq('user_id', userId);
+    }
+
+    if (eventId) {
+      query = query.eq('event_id', eventId);
     }
 
     const { data, error } = await query;
