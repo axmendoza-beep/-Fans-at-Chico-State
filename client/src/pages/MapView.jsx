@@ -32,12 +32,13 @@ function MapView() {
   };
 
   if (loading) return <div>Loading map...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: '#b71c1c' }}>{error}</div>;
 
   // Check if Google Maps is available
   if (!window.google) {
     return (
-      <div>
+      <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', border: '1px solid #f2d6d6' }}>
         <h1>Map View</h1>
         <div style={{ 
           padding: '2rem', 
@@ -95,13 +96,15 @@ function MapView() {
               {event.venue && <p><strong>Venue:</strong> {event.venue.name} - {event.venue.address}</p>}
             </div>
           ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', border: '1px solid #f2d6d6' }}>
       <h1>Map View</h1>
       <p>View event and venue locations on the map</p>
 
@@ -158,6 +161,7 @@ function MapView() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

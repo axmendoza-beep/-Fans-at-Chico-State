@@ -392,12 +392,16 @@ function Groups() {
     }
 
     try {
+      const closesAtIso = pollClosesAt
+        ? new Date(pollClosesAt).toISOString()
+        : null;
+
       const payload = {
         group_id: selectedGroupId,
         author_user_id: currentUser.user_id,
         question: trimmedQuestion,
         options_text: JSON.stringify(options),
-        closes_at: pollClosesAt || null,
+        closes_at: closesAtIso,
       };
 
       await groupPollsAPI.create(payload);
@@ -406,13 +410,15 @@ function Groups() {
       setPollQuestion('');
       setPollOptions(['', '', '', '', '']);
       setPollClosesAt('');
+      // Immediately reload polls so the new one appears as the current poll
+      loadPollsForGroup(selectedGroupId);
     } catch (err) {
       alert('Failed to create poll: ' + err.message);
     }
   };
 
   if (loading) return <div>Loading groups...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: '#b71c1c' }}>{error}</div>;
 
   const joinedGroupIds = new Set(memberships.map((m) => m.group_id));
   const joinedGroups = groups.filter((g) => joinedGroupIds.has(g.group_id));
@@ -441,7 +447,18 @@ function Groups() {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
 
   return (
-    <div>
+    <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
+      <div
+        style={{
+          maxWidth: '960px',
+          margin: '0 auto',
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #f2d6d6',
+        }}
+      >
       <h1>Fan Groups</h1>
       <p>Join groups, chat with fans, and stay connected</p>
 
@@ -497,12 +514,13 @@ function Groups() {
                     key={group.group_id}
                     onClick={() => setSelectedGroupId(group.group_id)}
                     style={{
-                      border: '1px solid #ddd',
+                      border: '1px solid #f2d6d6',
                       padding: '0.75rem 1rem',
                       marginBottom: '0.75rem',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      backgroundColor: isSelected ? '#e3f2fd' : '#ffffff',
+                      backgroundColor: isSelected ? '#fff5f5' : '#ffffff',
+                      boxShadow: isSelected ? '0 2px 4px rgba(153,0,0,0.08)' : 'none',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -543,7 +561,7 @@ function Groups() {
           {!selectedGroup ? (
             <p>Select a group from your list to view its chat.</p>
           ) : (
-            <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '1rem', minHeight: '300px' }}>
+            <div style={{ border: '1px solid #f2d6d6', borderRadius: '6px', padding: '1rem', minHeight: '300px', background: '#ffffff', boxShadow: '0 2px 6px rgba(153,0,0,0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
                 <div>
                   <h3 style={{ marginTop: 0 }}>{selectedGroup.name}</h3>
@@ -572,7 +590,7 @@ function Groups() {
                 <button
                   type="button"
                   onClick={() => setShowPollForm((prev) => !prev)}
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #990000', backgroundColor: '#fff5f5', cursor: 'pointer' }}
                 >
                   {showPollForm ? 'Cancel Poll' : 'Create Poll'}
                 </button>

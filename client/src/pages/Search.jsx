@@ -197,7 +197,7 @@ function Search() {
   };
 
   if (loading) return <div>Loading search data...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: '#b71c1c' }}>{error}</div>;
 
   const displayData = searchType === 'events' ? filteredEvents :
                       searchType === 'groups' ? filteredGroups :
@@ -220,19 +220,30 @@ function Search() {
   });
 
   return (
-    <div>
+    <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
+      <div
+        style={{
+          maxWidth: '960px',
+          margin: '0 auto',
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+          border: '1px solid #f2d6d6',
+        }}
+      >
       <h1>Search & Explore</h1>
       <p>Find events, fan groups, and venues in list or map view</p>
 
       {/* Search Type Tabs */}
-      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #ddd' }}>
+      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #f2d6d6' }}>
         <button
           onClick={() => setSearchType('events')}
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            borderBottom: searchType === 'events' ? '3px solid #1976d2' : 'none',
-            backgroundColor: searchType === 'events' ? '#f0f0f0' : 'transparent',
+            borderBottom: searchType === 'events' ? '3px solid #990000' : 'none',
+            backgroundColor: searchType === 'events' ? '#fdf7f7' : 'transparent',
             cursor: 'pointer',
             fontWeight: searchType === 'events' ? 'bold' : 'normal'
           }}
@@ -244,8 +255,8 @@ function Search() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            borderBottom: searchType === 'groups' ? '3px solid #1976d2' : 'none',
-            backgroundColor: searchType === 'groups' ? '#f0f0f0' : 'transparent',
+            borderBottom: searchType === 'groups' ? '3px solid #990000' : 'none',
+            backgroundColor: searchType === 'groups' ? '#fdf7f7' : 'transparent',
             cursor: 'pointer',
             fontWeight: searchType === 'groups' ? 'bold' : 'normal'
           }}
@@ -257,8 +268,8 @@ function Search() {
           style={{
             padding: '0.75rem 1.5rem',
             border: 'none',
-            borderBottom: searchType === 'venues' ? '3px solid #1976d2' : 'none',
-            backgroundColor: searchType === 'venues' ? '#f0f0f0' : 'transparent',
+            borderBottom: searchType === 'venues' ? '3px solid #990000' : 'none',
+            backgroundColor: searchType === 'venues' ? '#fdf7f7' : 'transparent',
             cursor: 'pointer',
             fontWeight: searchType === 'venues' ? 'bold' : 'normal'
           }}
@@ -277,8 +288,8 @@ function Search() {
             padding: '0.5rem 1rem',
             marginRight: '0.5rem',
             borderRadius: '4px',
-            border: viewMode === 'list' ? '2px solid #1976d2' : '1px solid #ccc',
-            backgroundColor: viewMode === 'list' ? '#e3f2fd' : '#ffffff',
+            border: viewMode === 'list' ? '2px solid #990000' : '1px solid #ccc',
+            backgroundColor: viewMode === 'list' ? '#fff5f5' : '#ffffff',
             cursor: 'pointer',
             fontWeight: viewMode === 'list' ? 'bold' : 'normal',
           }}
@@ -291,8 +302,8 @@ function Search() {
           style={{
             padding: '0.5rem 1rem',
             borderRadius: '4px',
-            border: viewMode === 'map' ? '2px solid #1976d2' : '1px solid #ccc',
-            backgroundColor: viewMode === 'map' ? '#e3f2fd' : '#ffffff',
+            border: viewMode === 'map' ? '2px solid #990000' : '1px solid #ccc',
+            backgroundColor: viewMode === 'map' ? '#fff5f5' : '#ffffff',
             cursor: 'pointer',
             fontWeight: viewMode === 'map' ? 'bold' : 'normal',
           }}
@@ -304,8 +315,10 @@ function Search() {
       {/* Filters */}
       <div style={{ 
         padding: '1rem', 
-        backgroundColor: '#f9f9f9', 
-        border: '1px solid #ddd',
+        backgroundColor: '#ffffff', 
+        border: '1px solid #f2d6d6',
+        borderRadius: '8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
         marginBottom: '2rem'
       }}>
         <h3>Filters</h3>
@@ -404,9 +417,9 @@ function Search() {
           style={{ 
             marginTop: '1rem',
             padding: '0.5rem 1rem',
-            backgroundColor: '#666',
-            color: 'white',
-            border: 'none',
+            backgroundColor: '#fff5f5',
+            color: '#990000',
+            border: '1px solid #990000',
             cursor: 'pointer'
           }}
         >
@@ -426,9 +439,12 @@ function Search() {
                 <div
                   key={event.event_id}
                   style={{ 
-                    border: '1px solid #ddd', 
+                    border: '1px solid #f2d6d6', 
                     padding: '1rem', 
                     marginBottom: '1rem',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 2px 4px rgba(153,0,0,0.06)',
                     cursor: 'pointer',
                   }}
                   onClick={() => navigate(`/events/${event.event_id}`)}
@@ -445,9 +461,12 @@ function Search() {
 
               {searchType === 'groups' && filteredGroups.map((group) => (
                 <div key={group.group_id} style={{ 
-                  border: '1px solid #ddd', 
+                  border: '1px solid #f2d6d6', 
                   padding: '1rem', 
-                  marginBottom: '1rem' 
+                  marginBottom: '1rem',
+                  borderRadius: '8px',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 2px 4px rgba(153,0,0,0.06)',
                 }}>
                   <h3>{group.name}</h3>
                   <p><strong>Sport:</strong> {group.sport}</p>
@@ -457,8 +476,8 @@ function Search() {
                       <span style={{
                         padding: '0.15rem 0.5rem',
                         borderRadius: '999px',
-                        backgroundColor: '#e8f5e9',
-                        color: '#2e7d32',
+                        backgroundColor: '#fff5f5',
+                        color: '#990000',
                         fontSize: '0.8rem',
                         fontWeight: 'bold',
                       }}>
@@ -470,9 +489,9 @@ function Search() {
                         style={{
                           padding: '0.25rem 0.75rem',
                           borderRadius: '4px',
-                          border: '1px solid #c62828',
-                          backgroundColor: '#ffffff',
-                          color: '#c62828',
+                          border: '1px solid #b71c1c',
+                          backgroundColor: '#ffebee',
+                          color: '#b71c1c',
                           cursor: 'pointer',
                           fontSize: '0.85rem',
                           fontWeight: 'bold',
@@ -505,9 +524,12 @@ function Search() {
 
               {searchType === 'venues' && filteredVenues.map((venue) => (
                 <div key={venue.venue_id} style={{ 
-                  border: '1px solid #ddd', 
+                  border: '1px solid #f2d6d6', 
                   padding: '1rem', 
-                  marginBottom: '1rem' 
+                  marginBottom: '1rem',
+                  borderRadius: '8px',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 2px 4px rgba(153,0,0,0.06)',
                 }}>
                   <h3>{venue.name}</h3>
                   <p><strong>Type:</strong> {venue.type}</p>
@@ -544,6 +566,7 @@ function Search() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
