@@ -18,6 +18,12 @@ function ProfileSettings() {
     group_chat_setting: 'mentions',
     allow_email: true,
     allow_sms: false,
+    notify_group_polls: true,
+    notify_group_messages: true,
+    notify_rsvp_confirmation: true,
+    notify_rsvp_reminders: true,
+    notify_rsvp_changes: true,
+    notification_cadence: 'daily',
   });
 
   useEffect(() => {
@@ -56,6 +62,12 @@ function ProfileSettings() {
             group_chat_setting: existing.group_chat_setting || 'mentions',
             allow_email: existing.allow_email ?? true,
             allow_sms: existing.allow_sms ?? false,
+            notify_group_polls: existing.notify_group_polls ?? true,
+            notify_group_messages: existing.notify_group_messages ?? true,
+            notify_rsvp_confirmation: existing.notify_rsvp_confirmation ?? true,
+            notify_rsvp_reminders: existing.notify_rsvp_reminders ?? true,
+            notify_rsvp_changes: existing.notify_rsvp_changes ?? true,
+            notification_cadence: existing.notification_cadence || 'daily',
           });
         } else {
           setFormData((prev) => ({
@@ -92,6 +104,12 @@ function ProfileSettings() {
         group_chat_setting: formData.group_chat_setting,
         allow_email: formData.allow_email,
         allow_sms: formData.allow_sms,
+        notify_group_polls: formData.notify_group_polls,
+        notify_group_messages: formData.notify_group_messages,
+        notify_rsvp_confirmation: formData.notify_rsvp_confirmation,
+        notify_rsvp_reminders: formData.notify_rsvp_reminders,
+        notify_rsvp_changes: formData.notify_rsvp_changes,
+        notification_cadence: formData.notification_cadence,
       };
 
       const response = await profilesAPI.update(userId, payload);
@@ -228,6 +246,92 @@ function ProfileSettings() {
               Trending events and recommendations
             </label>
           </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ fontWeight: 'bold' }}>Fan group notifications</label>
+          <div style={{ marginTop: '0.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={formData.notify_group_polls}
+                onChange={(e) =>
+                  setFormData({ ...formData, notify_group_polls: e.target.checked })
+                }
+              />{' '}
+              New polls in my fan groups
+            </label>
+            <label style={{ display: 'block', marginBottom: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={formData.notify_group_messages}
+                onChange={(e) =>
+                  setFormData({ ...formData, notify_group_messages: e.target.checked })
+                }
+              />{' '}
+              New messages in my fan groups
+            </label>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ fontWeight: 'bold' }}>Event RSVP notifications</label>
+          <div style={{ marginTop: '0.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={formData.notify_rsvp_confirmation}
+                onChange={(e) =>
+                  setFormData({ ...formData, notify_rsvp_confirmation: e.target.checked })
+                }
+              />{' '}
+              Confirmation when I RSVP to an event
+            </label>
+            <label style={{ display: 'block', marginBottom: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={formData.notify_rsvp_reminders}
+                onChange={(e) =>
+                  setFormData({ ...formData, notify_rsvp_reminders: e.target.checked })
+                }
+              />{' '}
+              Reminders before events I RSVP&apos;d to
+            </label>
+            <label style={{ display: 'block', marginBottom: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={formData.notify_rsvp_changes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notify_rsvp_changes: e.target.checked })
+                }
+              />{' '}
+              If an event I RSVP&apos;d to is changed or canceled
+            </label>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
+            Notification frequency
+          </label>
+          <select
+            value={formData.notification_cadence}
+            onChange={(e) => setFormData({ ...formData, notification_cadence: e.target.value })}
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              fontSize: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+            }}
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+          <small style={{ color: '#666' }}>
+            Controls how often we send batched notifications about your fan groups and events.
+          </small>
         </div>
 
         <div style={{ marginBottom: '1rem' }}>

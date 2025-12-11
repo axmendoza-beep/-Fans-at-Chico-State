@@ -95,7 +95,22 @@ function Groups() {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     try {
-      await groupsAPI.create(newGroup);
+      const res = await groupsAPI.create(newGroup);
+      const createdGroup = res?.data || res;
+
+      // Automatically add the creator as a member (owner) of the new group
+      if (createdGroup && createdGroup.group_id && currentUser && currentUser.user_id) {
+        try {
+          await groupMembershipsAPI.create({
+            group_id: createdGroup.group_id,
+            user_id: currentUser.user_id,
+            role: 'owner',
+          });
+        } catch (membershipErr) {
+          console.error('Failed to create membership for new group', membershipErr);
+        }
+      }
+
       alert('Group created successfully!');
       setShowCreateForm(false);
       setNewGroup({
