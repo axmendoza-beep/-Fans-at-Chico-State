@@ -153,7 +153,7 @@
               "Properties": {
                 "Code": {
                   "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-                  "S3Key": "serverless/fans-at-chico-state-api/dev/1765405431327-2025-12-10T22:23:51.327Z/fans-at-chico-state-api.zip"
+                  "S3Key": "serverless/fans-at-chico-state-api/dev/1765417541729-2025-12-11T01:45:41.729Z/fans-at-chico-state-api.zip"
                 },
                 "Handler": "src/lambda.handler",
                 "Runtime": "nodejs20.x",
@@ -390,7 +390,7 @@
         "artifactsS3KeyDirname": "serverless/fans-at-chico-state-api/dev/code-artifacts",
         "deploymentBucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
         "artifact": "/Users/alexiamendoza/Desktop/Fans at Chico State/API/.serverless/fans-at-chico-state-api.zip",
-        "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765405431327-2025-12-10T22:23:51.327Z"
+        "artifactDirectoryName": "serverless/fans-at-chico-state-api/dev/1765417541729-2025-12-11T01:45:41.729Z"
       }
     },
     "provider": {
@@ -540,7 +540,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-                "S3Key": "serverless/fans-at-chico-state-api/dev/1765405431327-2025-12-10T22:23:51.327Z/fans-at-chico-state-api.zip"
+                "S3Key": "serverless/fans-at-chico-state-api/dev/1765417541729-2025-12-11T01:45:41.729Z/fans-at-chico-state-api.zip"
               },
               "Handler": "src/lambda.handler",
               "Runtime": "nodejs20.x",
@@ -766,12 +766,12 @@
     "serviceProviderAwsCfStackName": "fans-at-chico-state-api-dev",
     "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-west-1:141814481357:stack/fans-at-chico-state-api-dev/c4f07450-d3a6-11f0-a943-025186444e0f",
     "serviceProviderAwsCfStackCreated": "2025-12-07T19:56:07.401Z",
-    "serviceProviderAwsCfStackUpdated": "2025-12-10T20:47:13.475Z",
+    "serviceProviderAwsCfStackUpdated": "2025-12-10T22:24:03.079Z",
     "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
     "serviceProviderAwsCfStackOutputs": [
       {
         "OutputKey": "ApiLambdaFunctionQualifiedArn",
-        "OutputValue": "arn:aws:lambda:us-west-1:141814481357:function:fans-at-chico-state-api-dev-api:11",
+        "OutputValue": "arn:aws:lambda:us-west-1:141814481357:function:fans-at-chico-state-api-dev-api:12",
         "Description": "Current Lambda function version",
         "ExportName": "sls-fans-at-chico-state-api-dev-ApiLambdaFunctionQualifiedArn"
       },
@@ -893,7 +893,7 @@
           "Properties": {
             "Code": {
               "S3Bucket": "serverless-framework-deployments-us-west-1-39885e6f-29bb",
-              "S3Key": "serverless/fans-at-chico-state-api/dev/1765405431327-2025-12-10T22:23:51.327Z/fans-at-chico-state-api.zip"
+              "S3Key": "serverless/fans-at-chico-state-api/dev/1765417541729-2025-12-11T01:45:41.729Z/fans-at-chico-state-api.zip"
             },
             "Handler": "src/lambda.handler",
             "Runtime": "nodejs20.x",

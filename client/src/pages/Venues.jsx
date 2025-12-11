@@ -220,26 +220,6 @@ function Venues() {
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Latitude:</label><br />
-              <input
-                type="number"
-                step="0.000001"
-                value={newVenue.latitude}
-                onChange={(e) => setNewVenue({ ...newVenue, latitude: e.target.value })}
-                placeholder="39.7285"
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Longitude:</label><br />
-              <input
-                type="number"
-                step="0.000001"
-                value={newVenue.longitude}
-                onChange={(e) => setNewVenue({ ...newVenue, longitude: e.target.value })}
-                placeholder="-121.8375"
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
               <label>Atmosphere Rating (1-5):</label><br />
               <input
                 type="number"
