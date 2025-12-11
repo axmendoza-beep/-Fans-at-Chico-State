@@ -65,44 +65,73 @@ function Map({ venues, events, center = { lat: 39.7285, lng: -121.8375 } }) {
         }
       });
 
-    // Add event markers
+    // Add event markers (grouped by location so multiple events at the same
+    // venue show together instead of overlapping markers)
+    const eventGroups = {};
+
     events?.forEach((event) => {
-        if (event.venue?.latitude && event.venue?.longitude) {
-          const position = { lat: Number(event.venue.latitude), lng: Number(event.venue.longitude) };
+      if (event.venue?.latitude && event.venue?.longitude) {
+        const latNum = Number(event.venue.latitude);
+        const lngNum = Number(event.venue.longitude);
 
-          const marker = new window.google.maps.Marker({
-            position,
-            map: mapInstanceRef.current,
-            title: event.game_name,
-            icon: {
-              url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
-            }
-          });
-
-          const infoWindow = new window.google.maps.InfoWindow({
-            content: `
-              <div style="padding: 10px; max-width: 260px;">
-                <h3 style="margin: 0 0 10px 0;">${event.game_name}</h3>
-                <p style="margin: 5px 0;"><strong>Sport:</strong> ${event.sport}</p>
-                <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(event.start_time).toLocaleString()}</p>
-                <p style="margin: 5px 0;"><strong>Venue:</strong> ${event.venue.name}</p>
-                <p style="margin: 5px 0;"><strong>Host:</strong> ${event.host?.display_name || 'Unknown'}</p>
-                <div style="margin-top: 10px; text-align: right;">
-                  <a href="/events/${event.event_id}" style="color: #1976d2; text-decoration: underline; font-weight: 500;">
-                    View event details
-                  </a>
-                </div>
-              </div>
-            `
-          });
-
-          marker.addListener('click', () => {
-            infoWindow.open(mapInstanceRef.current, marker);
-          });
-          markersRef.current.push(marker);
-          bounds.extend(position);
+        // Use a rounded key so identical coordinates group reliably
+        const key = `${latNum.toFixed(5)},${lngNum.toFixed(5)}`;
+        if (!eventGroups[key]) {
+          eventGroups[key] = {
+            position: { lat: latNum, lng: lngNum },
+            venueName: event.venue.name,
+            events: [],
+          };
         }
+        eventGroups[key].events.push(event);
+      }
+    });
+
+    Object.values(eventGroups).forEach((group) => {
+      const position = group.position;
+      const groupEvents = group.events;
+
+      if (!groupEvents.length) return;
+
+      const marker = new window.google.maps.Marker({
+        position,
+        map: mapInstanceRef.current,
+        title: group.venueName || groupEvents[0].game_name,
+        icon: {
+          url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        },
       });
+
+      const eventListHtml = groupEvents
+        .map((e) => `
+          <li style="margin: 4px 0;">
+            <strong>${e.game_name}</strong><br/>
+            <span>Sport: ${e.sport}</span><br/>
+            <span>Time: ${new Date(e.start_time).toLocaleString()}</span><br/>
+            <a href="/events/${e.event_id}" style="color: #1976d2; text-decoration: underline; font-weight: 500;">
+              View details
+            </a>
+          </li>
+        `)
+        .join('');
+
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="padding: 10px; max-width: 280px;">
+            <h3 style="margin: 0 0 8px 0;">${group.venueName || 'Events at this location'}</h3>
+            <ul style="padding-left: 18px; margin: 0; max-height: 200px; overflow-y: auto;">
+              ${eventListHtml}
+            </ul>
+          </div>
+        `,
+      });
+
+      marker.addListener('click', () => {
+        infoWindow.open(mapInstanceRef.current, marker);
+      });
+      markersRef.current.push(marker);
+      bounds.extend(position);
+    });
 
     // Fit map to bounds of all markers, or fall back to default center
     if (!bounds.isEmpty()) {

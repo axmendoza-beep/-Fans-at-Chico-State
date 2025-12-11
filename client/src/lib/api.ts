@@ -21,6 +21,7 @@ export const eventsAPI = {
 
 // Event Votes
 export const eventVotesAPI = {
+  getAll: () => api.get('/event_votes'),
   getForUser: (userId: string) => api.get('/event_votes', { params: { user_id: userId } }),
   getForEvent: (eventId: string) => api.get('/event_votes', { params: { event_id: eventId } }),
   setVote: (data: { event_id: string; user_id: string; value: number }) => api.post('/event_votes', data),

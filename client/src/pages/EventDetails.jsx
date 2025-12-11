@@ -116,6 +116,32 @@ function EventDetails() {
     }
   };
 
+  const handleEditEvent = () => {
+    if (!currentUser || !event || currentUser.user_id !== event.host_user_id) {
+      return;
+    }
+
+    navigate('/events', {
+      state: { editEventId: event.event_id },
+    });
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!event || !currentUser || currentUser.user_id !== event.host_user_id) {
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to delete this event?');
+    if (!confirmed) return;
+
+    try {
+      await eventsAPI.delete(event.event_id);
+      navigate('/events');
+    } catch (err) {
+      alert('Failed to delete event: ' + err.message);
+    }
+  };
+
   if (loading) {
     return <div>Loading event details...</div>;
   }
@@ -131,6 +157,7 @@ function EventDetails() {
   const start = new Date(event.start_time);
   const dateString = start.toLocaleDateString();
   const timeString = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isOwner = currentUser && currentUser.user_id === event.host_user_id;
 
   return (
     <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
@@ -208,6 +235,39 @@ function EventDetails() {
       <p style={{ margin: '0.25rem 0', color: '#555' }}>
         <strong>Age Restriction:</strong> {event.is_twentyone_plus ? '21+ only' : 'All ages'}
       </p>
+
+      {isOwner && (
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={handleEditEvent}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: '1px solid #1976d2',
+              backgroundColor: '#e3f2fd',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            Edit Event
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteEvent}
+            style={{
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              border: '1px solid #c62828',
+              backgroundColor: '#ffebee',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            Delete Event
+          </button>
+        </div>
+      )}
 
       {'capacity' in event && (
         <p style={{ margin: '0.25rem 0', color: '#555' }}>

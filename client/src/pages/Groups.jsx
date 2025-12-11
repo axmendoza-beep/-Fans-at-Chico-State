@@ -245,6 +245,52 @@ function Groups() {
     }
   };
 
+  const handlePinMessage = async (message) => {
+    if (!currentUser || !selectedGroupId) return;
+
+    const membership = memberships.find(
+      (m) => m.group_id === selectedGroupId && m.user_id === currentUser.user_id,
+    );
+    const isOwner = membership && membership.role === 'owner';
+    const isAuthor = message.user_id === currentUser.user_id;
+
+    if (!isOwner && !isAuthor) return;
+
+    try {
+      await groupMessagesAPI.update(message.message_id, {
+        is_pinned: true,
+        pinned_by_user_id: currentUser.user_id,
+        pinned_at: new Date().toISOString(),
+      });
+      loadMessagesForGroup(selectedGroupId);
+    } catch (err) {
+      alert('Failed to pin message: ' + err.message);
+    }
+  };
+
+  const handleUnpinMessage = async (message) => {
+    if (!currentUser || !selectedGroupId) return;
+
+    const membership = memberships.find(
+      (m) => m.group_id === selectedGroupId && m.user_id === currentUser.user_id,
+    );
+    const isOwner = membership && membership.role === 'owner';
+    const isAuthor = message.user_id === currentUser.user_id;
+
+    if (!isOwner && !isAuthor) return;
+
+    try {
+      await groupMessagesAPI.update(message.message_id, {
+        is_pinned: false,
+        pinned_by_user_id: null,
+        pinned_at: null,
+      });
+      loadMessagesForGroup(selectedGroupId);
+    } catch (err) {
+      alert('Failed to unpin message: ' + err.message);
+    }
+  };
+
   const handleVoteOnPoll = async (pollId, optionValue) => {
     if (!currentUser || !selectedGroupId) return;
 
@@ -316,6 +362,11 @@ function Groups() {
   const joinedGroupIds = new Set(memberships.map((m) => m.group_id));
   const joinedGroups = groups.filter((g) => joinedGroupIds.has(g.group_id));
   const selectedGroup = joinedGroups.find((g) => g.group_id === selectedGroupId) || null;
+
+  const selectedMembership = memberships.find(
+    (m) => m.group_id === selectedGroupId && currentUser && m.user_id === currentUser.user_id,
+  );
+  const isGroupOwner = !!selectedMembership && selectedMembership.role === 'owner';
 
   const now = new Date();
   const activePolls = polls.filter((p) => {
@@ -738,35 +789,115 @@ function Groups() {
                   <p>No messages yet. Start the conversation!</p>
                 ) : (
                   <div>
-                    {messages.map((msg) => (
-                      <div key={msg.message_id} style={{ marginTop: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {profilesById[msg.user_id]?.profile_photo_url && (
-                            <img
-                              src={profilesById[msg.user_id].profile_photo_url}
-                              alt="avatar"
-                              style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                          )}
-                          <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
-                              {profilesById[msg.user_id]?.display_name || profilesById[msg.user_id]?.email || 'Unknown user'}
+                    {(() => {
+                      const pinnedMessages = messages
+                        .filter((m) => m.is_pinned)
+                        .sort((a, b) => new Date(b.pinned_at || b.created_at) - new Date(a.pinned_at || a.created_at));
+                      const regularMessages = messages
+                        .filter((m) => !m.is_pinned)
+                        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+                      const renderMessage = (msg, { showPinnedBadge }) => {
+                        const canPinOrUnpin =
+                          (currentUser && msg.user_id === currentUser.user_id) || isGroupOwner;
+                        return (
+                          <div key={msg.message_id} style={{ marginTop: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {profilesById[msg.user_id]?.profile_photo_url && (
+                                <img
+                                  src={profilesById[msg.user_id].profile_photo_url}
+                                  alt="avatar"
+                                  style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              )}
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                      {profilesById[msg.user_id]?.display_name || profilesById[msg.user_id]?.email || 'Unknown user'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                                      {new Date(msg.created_at).toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    {showPinnedBadge && (
+                                      <span
+                                        style={{
+                                          padding: '0.15rem 0.4rem',
+                                          borderRadius: '999px',
+                                          backgroundColor: '#e3f2fd',
+                                          color: '#1976d2',
+                                          fontSize: '0.7rem',
+                                          fontWeight: 'bold',
+                                        }}
+                                      >
+                                        Pinned
+                                      </span>
+                                    )}
+                                    {canPinOrUnpin && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          msg.is_pinned
+                                            ? handleUnpinMessage(msg)
+                                            : handlePinMessage(msg)
+                                        }
+                                        style={{
+                                          padding: '0.15rem 0.4rem',
+                                          borderRadius: '4px',
+                                          border: '1px solid #ccc',
+                                          backgroundColor: '#ffffff',
+                                          cursor: 'pointer',
+                                          fontSize: '0.7rem',
+                                        }}
+                                      >
+                                        {msg.is_pinned ? 'Unpin' : 'Pin'}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#888' }}>
-                              {new Date(msg.created_at).toLocaleString()}
+                            <div style={{
+                              marginTop: '0.25rem',
+                              padding: '0.5rem 0.75rem',
+                              backgroundColor: '#f5f5f5',
+                              borderRadius: '4px',
+                            }}>
+                              {msg.body}
                             </div>
                           </div>
-                        </div>
-                        <div style={{
-                          marginTop: '0.25rem',
-                          padding: '0.5rem 0.75rem',
-                          backgroundColor: '#f5f5f5',
-                          borderRadius: '4px',
-                        }}>
-                          {msg.body}
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      };
+
+                      return (
+                        <>
+                          {pinnedMessages.length > 0 && (
+                            <div
+                              style={{
+                                marginBottom: '0.75rem',
+                                paddingBottom: '0.5rem',
+                                borderBottom: '1px dashed #ddd',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: '0.8rem',
+                                  fontWeight: 'bold',
+                                  color: '#555',
+                                  marginBottom: '0.25rem',
+                                }}
+                              >
+                                Pinned announcements
+                              </div>
+                              {pinnedMessages.map((msg) => renderMessage(msg, { showPinnedBadge: true }))}
+                            </div>
+                          )}
+                          {regularMessages.map((msg) => renderMessage(msg, { showPinnedBadge: false }))}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

@@ -77,7 +77,7 @@ function Venues() {
         ...newVenue,
         latitude,
         longitude,
-        creator_user_id: currentUser ? currentUser.user_id : undefined,
+        creator_email: currentUser && currentUser.email ? currentUser.email : undefined,
       };
 
       if (editingVenueId) {
@@ -106,7 +106,10 @@ function Venues() {
   };
 
   const startEditVenue = (venue) => {
-    if (!currentUser || currentUser.user_id !== venue.creator_user_id) {
+    const userEmail = currentUser && currentUser.email ? currentUser.email.toLowerCase() : null;
+    const creatorEmail = venue && venue.creator_email ? venue.creator_email.toLowerCase() : null;
+
+    if (!userEmail || !creatorEmail || userEmail !== creatorEmail) {
       return;
     }
 
@@ -127,7 +130,10 @@ function Venues() {
 
   const handleDeleteVenue = async (venueId) => {
     const venue = venues.find((v) => v.venue_id === venueId);
-    if (!venue || !currentUser || currentUser.user_id !== venue.creator_user_id) {
+    const userEmail = currentUser && currentUser.email ? currentUser.email.toLowerCase() : null;
+    const creatorEmail = venue && venue.creator_email ? venue.creator_email.toLowerCase() : null;
+
+    if (!venue || !userEmail || !creatorEmail || userEmail !== creatorEmail) {
       return;
     }
 
@@ -241,7 +247,9 @@ function Venues() {
         ) : (
           <div>
             {venues.map((venue) => {
-              const isOwner = currentUser && currentUser.user_id === venue.creator_user_id;
+              const userEmail = currentUser && currentUser.email ? currentUser.email.toLowerCase() : null;
+              const creatorEmail = venue && venue.creator_email ? venue.creator_email.toLowerCase() : null;
+              const isOwner = !!userEmail && !!creatorEmail && userEmail === creatorEmail;
               return (
                 <div key={venue.venue_id} style={{ 
                   border: '1px solid #ddd', 

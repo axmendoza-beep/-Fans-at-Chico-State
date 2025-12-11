@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { eventsAPI, rsvpsAPI, venuesAPI, eventVotesAPI } from '../lib/api';
 
 function Events() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = useState([]);
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ function Events() {
     description: '',
     venue_id: ''
   });
+  const [eventsTab, setEventsTab] = useState('all'); // 'all' | 'trending'
   const [createError, setCreateError] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
   const [currentUser] = useState(() => {
@@ -27,6 +29,7 @@ function Events() {
     }
   });
   const [votes, setVotes] = useState({}); // { [event_id]: 1 | -1 | 0 }
+  const [eventVoteStats, setEventVoteStats] = useState({}); // { [event_id]: { up: number, down: number, score: number } }
   const [savedEvents, setSavedEvents] = useState(() => {
     try {
       const raw = localStorage.getItem('savedEvents');
@@ -46,7 +49,20 @@ function Events() {
     if (currentUser) {
       fetchVotes(currentUser.user_id);
     }
+    fetchAllEventVotes();
   }, [currentUser]);
+
+  useEffect(() => {
+    const state = location.state;
+    if (!state || !state.editEventId) {
+      return;
+    }
+
+    const toEdit = events.find((e) => e.event_id === state.editEventId);
+    if (toEdit) {
+      startEditEvent(toEdit);
+    }
+  }, [location.state, events]);
 
   const fetchEvents = async () => {
     try {
@@ -71,6 +87,29 @@ function Events() {
       setVotes(voteMap);
     } catch (err) {
       console.error('Failed to load event votes for user', err);
+    }
+  };
+
+  const fetchAllEventVotes = async () => {
+    try {
+      const response = await eventVotesAPI.getAll();
+      const stats = {};
+      (response.data || []).forEach((vote) => {
+        const id = vote.event_id;
+        if (!stats[id]) {
+          stats[id] = { up: 0, down: 0, score: 0 };
+        }
+        if (vote.value === 1) {
+          stats[id].up += 1;
+          stats[id].score += 1;
+        } else if (vote.value === -1) {
+          stats[id].down += 1;
+          stats[id].score -= 1;
+        }
+      });
+      setEventVoteStats(stats);
+    } catch (err) {
+      console.error('Failed to load event votes for trending', err);
     }
   };
 
@@ -226,15 +265,33 @@ function Events() {
   if (loading) return <div>Loading events...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
-  // Reorder events so that saved events for this user appear at the top
+  // Reorder events depending on tab selection
   const sortedEvents = [...events].sort((a, b) => {
+    if (eventsTab === 'trending') {
+      const aStats = eventVoteStats[a.event_id] || { up: 0, down: 0, score: 0 };
+      const bStats = eventVoteStats[b.event_id] || { up: 0, down: 0, score: 0 };
+
+      // Primary: higher net score (up - down)
+      if (bStats.score !== aStats.score) {
+        return bStats.score - aStats.score;
+      }
+
+      // Secondary: more upvotes
+      if (bStats.up !== aStats.up) {
+        return bStats.up - aStats.up;
+      }
+
+      // Tertiary: earlier start time
+      return new Date(a.start_time) - new Date(b.start_time);
+    }
+
+    // Default "all" tab: saved events first, then chronological by start_time
     const aSaved = savedEvents.includes(a.event_id);
     const bSaved = savedEvents.includes(b.event_id);
 
     if (aSaved && !bSaved) return -1;
     if (!aSaved && bSaved) return 1;
 
-    // If both are saved or both are not, keep chronological order by start_time
     return new Date(a.start_time) - new Date(b.start_time);
   });
 
@@ -242,6 +299,38 @@ function Events() {
     <div>
       <h1>Events</h1>
       <p>Browse upcoming watch parties, vote on what looks fun, and open an event to see full details.</p>
+
+      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #ddd' }}>
+        <button
+          type="button"
+          onClick={() => setEventsTab('all')}
+          style={{
+            padding: '0.5rem 1rem',
+            border: 'none',
+            borderBottom: eventsTab === 'all' ? '3px solid #1976d2' : 'none',
+            backgroundColor: eventsTab === 'all' ? '#f0f0f0' : 'transparent',
+            cursor: 'pointer',
+            fontWeight: eventsTab === 'all' ? 'bold' : 'normal',
+            marginRight: '0.5rem',
+          }}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          onClick={() => setEventsTab('trending')}
+          style={{
+            padding: '0.5rem 1rem',
+            border: 'none',
+            borderBottom: eventsTab === 'trending' ? '3px solid #1976d2' : 'none',
+            backgroundColor: eventsTab === 'trending' ? '#f0f0f0' : 'transparent',
+            cursor: 'pointer',
+            fontWeight: eventsTab === 'trending' ? 'bold' : 'normal',
+          }}
+        >
+          Trending
+        </button>
+      </div>
 
       <button onClick={() => {
         setShowCreateForm(!showCreateForm);
@@ -342,7 +431,7 @@ function Events() {
       )}
 
       <div style={{ marginTop: '2rem' }}>
-        <h2>Upcoming Events ({events.length})</h2>
+        <h2>{eventsTab === 'trending' ? 'Trending Events' : 'Upcoming Events'} ({events.length})</h2>
         {events.length === 0 ? (
           <p>No events found. Create one to get started!</p>
         ) : (

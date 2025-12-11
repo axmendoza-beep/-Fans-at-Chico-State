@@ -64,6 +64,7 @@ CREATE INDEX IF NOT EXISTS followed_teams_user_idx ON public.followed_teams (use
 CREATE TABLE IF NOT EXISTS public.venues (
   venue_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
+  creator_email text,
   type app_venue_type NOT NULL,
   address text,
   latitude numeric(9,6),
