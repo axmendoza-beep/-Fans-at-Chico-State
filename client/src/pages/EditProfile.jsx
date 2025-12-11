@@ -17,6 +17,7 @@ function EditProfile() {
     bio: '',
     profile_photo_url: '',
   });
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -86,11 +87,39 @@ function EditProfile() {
         return;
       }
 
+      // If a new profile photo file was selected, upload it to Supabase Storage
+      // and use the resulting public URL in the profile.
+      let photoUrl = formData.profile_photo_url || null;
+
+      if (profilePhotoFile) {
+        const ext = (profilePhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `profiles/${userId}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('profile-photos')
+          .upload(path, profilePhotoFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Error uploading profile photo', uploadError);
+          setError('Error uploading profile photo: ' + uploadError.message);
+          return;
+        }
+
+        const { data: publicData } = supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(path);
+
+        photoUrl = publicData.publicUrl || null;
+      }
+
       const payload = {
         display_name: formData.display_name,
         major: formData.major || null,
         bio: formData.bio || null,
-        profile_photo_url: formData.profile_photo_url || null,
+        profile_photo_url: photoUrl,
       };
 
       const response = await profilesAPI.update(userId, payload);
@@ -230,21 +259,38 @@ function EditProfile() {
 
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            Profile Picture URL (optional)
+            Profile photo (optional)
           </label>
+
+          {formData.profile_photo_url && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <img
+                src={formData.profile_photo_url}
+                alt="Current profile"
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #1976d2',
+                }}
+              />
+            </div>
+          )}
+
           <input
-            type="url"
-            value={formData.profile_photo_url}
-            onChange={(e) => setFormData({ ...formData, profile_photo_url: e.target.value })}
-            placeholder="https://example.com/your-photo.jpg"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setProfilePhotoFile(e.target.files?.[0] || null)}
             style={{
               width: '100%',
-              padding: '0.5rem',
+              padding: '0.25rem 0',
               fontSize: '1rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
             }}
           />
+          <small style={{ color: '#666' }}>
+            This photo is only used inside the app (for example, in chats or your profile) and is not exposed publicly.
+          </small>
         </div>
 
         <button

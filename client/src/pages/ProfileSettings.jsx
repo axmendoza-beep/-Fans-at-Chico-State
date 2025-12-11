@@ -12,6 +12,7 @@ function ProfileSettings() {
   const [userId, setUserId] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
+    phone: '',
     followed_team_events: true,
     trending_opt_in: false,
     group_chat_setting: 'mentions',
@@ -49,6 +50,7 @@ function ProfileSettings() {
         if (existing) {
           setFormData({
             email: existing.email || email,
+            phone: existing.phone || '',
             followed_team_events: existing.followed_team_events ?? true,
             trending_opt_in: existing.trending_opt_in ?? false,
             group_chat_setting: existing.group_chat_setting || 'mentions',
@@ -84,6 +86,7 @@ function ProfileSettings() {
       }
 
       const payload = {
+        phone: formData.phone || null,
         followed_team_events: formData.followed_team_events,
         trending_opt_in: formData.trending_opt_in,
         group_chat_setting: formData.group_chat_setting,
@@ -177,6 +180,28 @@ function ProfileSettings() {
               backgroundColor: '#eee',
             }}
           />
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+            Phone number (private)
+          </label>
+          <input
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            placeholder="555-123-4567"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              fontSize: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+            }}
+          />
+          <small style={{ color: '#666' }}>
+            Your phone number is not shown to other users. It may be used only for notifications.
+          </small>
         </div>
 
         <div style={{ marginBottom: '1rem' }}>
