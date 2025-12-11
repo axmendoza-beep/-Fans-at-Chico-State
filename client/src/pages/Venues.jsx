@@ -152,10 +152,10 @@ function Venues() {
   };
 
   if (loading) return <div>Loading venues...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: '#b71c1c' }}>{error}</div>;
 
   return (
-    <div>
+    <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
       <h1>Venues</h1>
       <p>Discover great locations for watch parties</p>
 
@@ -180,7 +180,7 @@ function Venues() {
       </button>
 
       {showCreateForm && (
-        <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
+        <div style={{ border: '1px solid #f2d6d6', padding: '1rem', marginTop: '1rem', borderRadius: '12px', background: '#ffffff', boxShadow: '0 2px 6px rgba(153,0,0,0.06)' }}>
           <h2>{editingVenueId ? 'Edit Venue' : 'Add New Venue'}</h2>
           <form onSubmit={handleCreateOrUpdateVenue}>
             <div style={{ marginBottom: '1rem' }}>
@@ -266,9 +266,12 @@ function Venues() {
               const isOwner = !!userEmail && !!creatorEmail && userEmail === creatorEmail;
               return (
                 <div key={venue.venue_id} style={{ 
-                  border: '1px solid #ddd', 
+                  border: '1px solid #f2d6d6', 
                   padding: '1rem', 
-                  marginBottom: '1rem' 
+                  marginBottom: '1rem',
+                  borderRadius: '8px',
+                  background: '#ffffff',
+                  boxShadow: '0 2px 4px rgba(153,0,0,0.06)',
                 }}>
                   <h3>{venue.name}</h3>
                   <p><strong>Venue ID:</strong> {venue.venue_id}</p>

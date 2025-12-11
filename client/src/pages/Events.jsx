@@ -266,7 +266,7 @@ function Events() {
   };
 
   if (loading) return <div>Loading events...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: '#b71c1c' }}>{error}</div>;
 
   // Reorder events depending on tab selection
   const sortedEvents = [...events].sort((a, b) => {
@@ -303,15 +303,15 @@ function Events() {
       <h1>Events</h1>
       <p>Browse upcoming watch parties, vote on what looks fun, and open an event to see full details.</p>
 
-      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #ddd' }}>
+      <div style={{ marginBottom: '1rem', borderBottom: '2px solid #f2d6d6' }}>
         <button
           type="button"
           onClick={() => setEventsTab('all')}
           style={{
             padding: '0.5rem 1rem',
             border: 'none',
-            borderBottom: eventsTab === 'all' ? '3px solid #1976d2' : 'none',
-            backgroundColor: eventsTab === 'all' ? '#f0f0f0' : 'transparent',
+            borderBottom: eventsTab === 'all' ? '3px solid #990000' : 'none',
+            backgroundColor: eventsTab === 'all' ? '#fdf7f7' : 'transparent',
             cursor: 'pointer',
             fontWeight: eventsTab === 'all' ? 'bold' : 'normal',
             marginRight: '0.5rem',
@@ -325,8 +325,8 @@ function Events() {
           style={{
             padding: '0.5rem 1rem',
             border: 'none',
-            borderBottom: eventsTab === 'trending' ? '3px solid #1976d2' : 'none',
-            backgroundColor: eventsTab === 'trending' ? '#f0f0f0' : 'transparent',
+            borderBottom: eventsTab === 'trending' ? '3px solid #990000' : 'none',
+            backgroundColor: eventsTab === 'trending' ? '#fdf7f7' : 'transparent',
             cursor: 'pointer',
             fontWeight: eventsTab === 'trending' ? 'bold' : 'normal',
           }}
@@ -473,7 +473,7 @@ function Events() {
                 <div
                   key={event.event_id}
                   style={{ 
-                    border: '1px solid #ddd', 
+                    border: '1px solid #f2d6d6', 
                     padding: '1rem', 
                     marginBottom: '1rem',
                     borderRadius: '8px',
@@ -481,7 +481,8 @@ function Events() {
                     justifyContent: 'space-between',
                     gap: '1rem',
                     cursor: 'pointer',
-                    backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : 'white',
+                    backgroundColor: savedEvents.includes(event.event_id) ? '#fff5f5' : '#ffffff',
+                    boxShadow: '0 2px 4px rgba(153,0,0,0.08)',
                   }}
                   onClick={() =>
                     navigate(`/events/${event.event_id}`, {
@@ -522,8 +523,8 @@ function Events() {
                         style={{
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px',
-                          border: votes[event.event_id] === 1 ? '2px solid #2e7d32' : '1px solid #ccc',
-                          backgroundColor: votes[event.event_id] === 1 ? '#e8f5e9' : '#ffffff',
+                          border: votes[event.event_id] === 1 ? '2px solid #990000' : '1px solid #ccc',
+                          backgroundColor: votes[event.event_id] === 1 ? '#fff5f5' : '#ffffff',
                           cursor: 'pointer',
                         }}
                       >
@@ -535,7 +536,7 @@ function Events() {
                         style={{
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px',
-                          border: votes[event.event_id] === -1 ? '2px solid #c62828' : '1px solid #ccc',
+                          border: votes[event.event_id] === -1 ? '2px solid #b71c1c' : '1px solid #ccc',
                           backgroundColor: votes[event.event_id] === -1 ? '#ffebee' : '#ffffff',
                           cursor: 'pointer',
                         }}
@@ -550,8 +551,8 @@ function Events() {
                         marginTop: '0.5rem',
                         padding: '0.25rem 0.75rem',
                         borderRadius: '4px',
-                        border: savedEvents.includes(event.event_id) ? '2px solid #6a1b9a' : '1px solid #ccc',
-                        backgroundColor: savedEvents.includes(event.event_id) ? '#f3e5f5' : '#ffffff',
+                        border: savedEvents.includes(event.event_id) ? '2px solid #990000' : '1px solid #ccc',
+                        backgroundColor: savedEvents.includes(event.event_id) ? '#fff5f5' : '#ffffff',
                         cursor: 'pointer',
                         fontSize: '0.85rem',
                       }}
