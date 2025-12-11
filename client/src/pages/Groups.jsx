@@ -442,9 +442,10 @@ function Groups() {
   });
 
   // Treat the most recent active poll as the "current" poll to pin at the top of chat
-  const currentPoll = activePolls
-    .slice()
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
+  const currentPoll =
+    activePolls
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
 
   return (
     <div style={{ background: '#fdf7f7', minHeight: '100vh', padding: '2rem 1rem' }}>
@@ -459,324 +460,279 @@ function Groups() {
           border: '1px solid #f2d6d6',
         }}
       >
-      <h1>Fan Groups</h1>
-      <p>Join groups, chat with fans, and stay connected</p>
+        <h1>Fan Groups</h1>
+        <p>Join groups, chat with fans, and stay connected</p>
 
-      <button onClick={() => setShowCreateForm(!showCreateForm)}>
-        {showCreateForm ? 'Cancel' : 'Create New Group'}
-      </button>
+        <button onClick={() => setShowCreateForm(!showCreateForm)}>
+          {showCreateForm ? 'Cancel' : 'Create New Group'}
+        </button>
 
-      {showCreateForm && (
-        <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}>
-          <h2>Create New Group</h2>
-          <form onSubmit={handleCreateGroup}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Group Name:</label><br />
-              <input
-                type="text"
-                value={newGroup.name}
-                onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Sport:</label><br />
-              <input
-                type="text"
-                value={newGroup.sport}
-                onChange={(e) => setNewGroup({ ...newGroup, sport: e.target.value })}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Description:</label><br />
-              <textarea
-                value={newGroup.description}
-                onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-              />
-            </div>
-            <button type="submit">Create Group</button>
-          </form>
-        </div>
-      )}
-
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1.5rem' }}>
-        <div style={{ flexBasis: '30%', maxWidth: '320px' }}>
-          <h2>Your Fan Groups ({joinedGroups.length})</h2>
-          {joinedGroups.length === 0 ? (
-            <p>You're not in any Fan Groups yet.</p>
-          ) : (
-            <div>
-              {joinedGroups.map((group) => {
-                const isSelected = group.group_id === selectedGroupId;
-                return (
-                  <div
-                    key={group.group_id}
-                    onClick={() => setSelectedGroupId(group.group_id)}
-                    style={{
-                      border: '1px solid #f2d6d6',
-                      padding: '0.75rem 1rem',
-                      marginBottom: '0.75rem',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      backgroundColor: isSelected ? '#fff5f5' : '#ffffff',
-                      boxShadow: isSelected ? '0 2px 4px rgba(153,0,0,0.08)' : 'none',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1rem' }}>{group.name}</h3>
-                        <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#555' }}>
-                          <strong>Sport:</strong> {group.sport}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLeaveGroup(group.group_id);
-                        }}
-                        style={{
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #c62828',
-                          backgroundColor: '#ffebee',
-                          color: '#c62828',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        Leave
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <h2>Group Chat</h2>
-          {!selectedGroup ? (
-            <p>Select a group from your list to view its chat.</p>
-          ) : (
-            <div style={{ border: '1px solid #f2d6d6', borderRadius: '6px', padding: '1rem', minHeight: '300px', background: '#ffffff', boxShadow: '0 2px 6px rgba(153,0,0,0.06)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-                <div>
-                  <h3 style={{ marginTop: 0 }}>{selectedGroup.name}</h3>
-                  <p style={{ marginTop: 0, fontSize: '0.9rem', color: '#555' }}>{selectedGroup.description || 'No description yet.'}</p>
-                </div>
-                {isGroupOwner && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteGroup}
-                    style={{
-                      padding: '0.3rem 0.6rem',
-                      borderRadius: '4px',
-                      border: '1px solid #b71c1c',
-                      backgroundColor: '#ffebee',
-                      color: '#b71c1c',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      height: 'fit-content',
-                    }}
-                  >
-                    Delete Group
-                  </button>
-                )}
-              </div>
-              <div style={{ marginTop: '0.5rem', marginBottom: '0.75rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowPollForm((prev) => !prev)}
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #990000', backgroundColor: '#fff5f5', cursor: 'pointer' }}
-                >
-                  {showPollForm ? 'Cancel Poll' : 'Create Poll'}
-                </button>
-              </div>
-
-              {showPollForm && (
-                <div style={{ border: '1px solid #eee', borderRadius: '4px', padding: '0.75rem', marginBottom: '1rem', backgroundColor: '#fafafa' }}>
-                  <h4 style={{ marginTop: 0 }}>New Poll</h4>
-                  <form onSubmit={handleCreatePoll}>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>Question</label>
-                      <input
-                        type="text"
-                        value={pollQuestion}
-                        onChange={(e) => setPollQuestion(e.target.value)}
-                        placeholder="What are you voting on?"
-                        style={{ width: '100%', padding: '0.5rem' }}
-                        required
-                      />
-                    </div>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>Options (up to 5)</label>
-                      {pollOptions.map((opt, idx) => (
-                        <input
-                          key={idx}
-                          type="text"
-                          value={opt}
-                          onChange={(e) => {
-                            const next = [...pollOptions];
-                            next[idx] = e.target.value;
-                            setPollOptions(next);
-                          }}
-                          placeholder={`Option ${idx + 1}`}
-                          style={{ width: '100%', padding: '0.5rem', marginBottom: '0.25rem' }}
-                        />
-                      ))}
-                    </div>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 'bold' }}>Keep poll open until</label>
-                      <input
-                        type="datetime-local"
-                        value={pollClosesAt}
-                        onChange={(e) => setPollClosesAt(e.target.value)}
-                        style={{ padding: '0.5rem' }}
-                      />
-                    </div>
-                    <button type="submit" style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem' }}>Create Poll</button>
-                  </form>
-                </div>
-              )}
-
+        {showCreateForm && (
+          <div
+            style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem' }}
+          >
+            <h2>Create New Group</h2>
+            <form onSubmit={handleCreateGroup}>
               <div style={{ marginBottom: '1rem' }}>
-                {pollsLoading ? (
-                  <p>Loading polls...</p>
-                ) : !currentPoll ? null : (
-                  <div>
-                    {(() => {
-                      const poll = currentPoll;
-                      const options = (() => {
-                        try {
-                          const parsed = JSON.parse(poll.options_text || '[]');
-                          return Array.isArray(parsed) ? parsed : [];
-                        } catch {
-                          return [];
-                        }
-                      })();
+                <label>Group Name:</label><br />
+                <input
+                  type="text"
+                  value={newGroup.name}
+                  onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Sport:</label><br />
+                <input
+                  type="text"
+                  value={newGroup.sport}
+                  onChange={(e) => setNewGroup({ ...newGroup, sport: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Description:</label><br />
+                <textarea
+                  value={newGroup.description}
+                  onChange={(e) =>
+                    setNewGroup({ ...newGroup, description: e.target.value })
+                  }
+                />
+              </div>
+              <button type="submit">Create Group</button>
+            </form>
+          </div>
+        )}
 
-                      const votesForPoll = pollVotes.filter((v) => v.poll_id === poll.poll_id);
-                      const totalVotes = votesForPoll.length;
-                      const userVote = currentUser
-                        ? votesForPoll.find((v) => v.user_id === currentUser.user_id) || null
-                        : null;
-                      const isClosed = poll.closes_at && new Date(poll.closes_at) <= now;
-
-                      let winningOptions = new Set();
-                      if (totalVotes > 0) {
-                        let maxCount = 0;
-                        options.forEach((opt) => {
-                          const count = votesForPoll.filter((v) => v.selected_option === opt).length;
-                          if (count > maxCount) {
-                            maxCount = count;
-                          }
-                        });
-                        options.forEach((opt) => {
-                          const count = votesForPoll.filter((v) => v.selected_option === opt).length;
-                          if (count === maxCount && maxCount > 0) {
-                            winningOptions.add(opt);
-                          }
-                        });
-                      }
-
-                      return (
-                        <div
-                          key={poll.poll_id}
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '1.5rem' }}>
+          {/* Left column: joined groups */}
+          <div style={{ flexBasis: '30%', maxWidth: '320px' }}>
+            <h2>Your Fan Groups ({joinedGroups.length})</h2>
+            {joinedGroups.length === 0 ? (
+              <p>You're not in any Fan Groups yet.</p>
+            ) : (
+              <div>
+                {joinedGroups.map((group) => {
+                  const isSelected = group.group_id === selectedGroupId;
+                  return (
+                    <div
+                      key={group.group_id}
+                      onClick={() => setSelectedGroupId(group.group_id)}
+                      style={{
+                        border: '1px solid #f2d6d6',
+                        padding: '0.75rem 1rem',
+                        marginBottom: '0.75rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        backgroundColor: isSelected ? '#fff5f5' : '#ffffff',
+                        boxShadow: isSelected ? '0 2px 4px rgba(153,0,0,0.08)' : 'none',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1rem' }}>{group.name}</h3>
+                          <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#555' }}>
+                            <strong>Sport:</strong> {group.sport}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLeaveGroup(group.group_id);
+                          }}
                           style={{
-                            border: '1px solid #eee',
+                            padding: '0.2rem 0.5rem',
                             borderRadius: '4px',
-                            padding: '0.75rem',
-                            marginBottom: '0.75rem',
-                            backgroundColor: '#f9f9f9',
+                            border: '1px solid #c62828',
+                            backgroundColor: '#ffebee',
+                            color: '#c62828',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 'bold' }}>{poll.question}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                              {isClosed
-                                ? 'Poll closed'
-                                : poll.closes_at
-                                  ? `Closes: ${new Date(poll.closes_at).toLocaleString()}`
-                                  : 'Open poll'}
-                            </div>
-                          </div>
-                          <div style={{ marginTop: '0.5rem' }}>
-                            {options.map((opt) => {
-                              const count = votesForPoll.filter((v) => v.selected_option === opt).length;
-                              const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                              const disabled = isClosed || !!userVote;
-                              const isWinner = isClosed && winningOptions.has(opt);
-
-                              return (
-                                <div key={opt} style={{ marginBottom: '0.35rem' }}>
-                                  <button
-                                    type="button"
-                                    disabled={disabled}
-                                    onClick={() => handleVoteOnPoll(poll.poll_id, opt)}
-                                    style={{
-                                      width: '100%',
-                                      textAlign: 'left',
-                                      padding: '0.35rem 0.5rem',
-                                      borderRadius: '4px',
-                                      border: '1px solid #ccc',
-                                      backgroundColor: disabled && userVote?.selected_option === opt ? '#e3f2fd' : '#ffffff',
-                                      cursor: disabled ? 'default' : 'pointer',
-                                      fontSize: '0.85rem',
-                                    }}
-                                  >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                      <span style={{ fontWeight: isWinner ? 'bold' : 'normal' }}>{opt}</span>
-                                      <span style={{ fontSize: '0.8rem', color: '#555' }}>
-                                        {count} vote{count !== 1 ? 's' : ''} ({pct}%)
-                                      </span>
-                                    </div>
-                                    <div
-                                      style={{
-                                        marginTop: '0.25rem',
-                                        height: '6px',
-                                        borderRadius: '3px',
-                                        backgroundColor: '#eee',
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          width: `${pct}%`,
-                                          height: '100%',
-                                          borderRadius: '3px',
-                                          backgroundColor: isWinner ? '#2e7d32' : '#1976d2',
-                                        }}
-                                      />
-                                    </div>
-                                  </button>
-                                </div>
-                              );
-                            })}
-                            <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#777' }}>
-                              Total votes: {totalVotes}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+                          Leave
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+            )}
+          </div>
 
-              {closedPolls.length > 0 && (
-                <div style={{ marginTop: '1rem' }}>
+          {/* Right column: chat + polls */}
+          <div style={{ flex: 1 }}>
+            <h2>Group Chat</h2>
+            {!selectedGroup ? (
+              <p>Select a group from your list to view its chat.</p>
+            ) : (
+              <div
+                style={{
+                  border: '1px solid #f2d6d6',
+                  borderRadius: '6px',
+                  padding: '1rem',
+                  minHeight: '300px',
+                  background: '#ffffff',
+                  boxShadow: '0 2px 6px rgba(153,0,0,0.06)',
+                }}
+              >
+                {/* Header with group name and delete button */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div>
+                    <h3 style={{ marginTop: 0 }}>{selectedGroup.name}</h3>
+                    <p
+                      style={{
+                        marginTop: 0,
+                        fontSize: '0.9rem',
+                        color: '#555',
+                      }}
+                    >
+                      {selectedGroup.description || 'No description yet.'}
+                    </p>
+                  </div>
+                  {isGroupOwner && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteGroup}
+                      style={{
+                        padding: '0.3rem 0.6rem',
+                        borderRadius: '4px',
+                        border: '1px solid #b71c1c',
+                        backgroundColor: '#ffebee',
+                        color: '#b71c1c',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        height: 'fit-content',
+                      }}
+                    >
+                      Delete Group
+                    </button>
+                  )}
+                </div>
+
+                {/* Poll create toggle */}
+                <div style={{ marginTop: '0.5rem', marginBottom: '0.75rem' }}>
                   <button
                     type="button"
-                    onClick={() => setShowPastPolls((prev) => !prev)}
-                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
+                    onClick={() => setShowPollForm((prev) => !prev)}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      fontSize: '0.85rem',
+                      borderRadius: '4px',
+                      border: '1px solid #990000',
+                      backgroundColor: '#fff5f5',
+                      cursor: 'pointer',
+                    }}
                   >
-                    {showPastPolls ? `Hide Past Polls (${closedPolls.length})` : `Show Past Polls (${closedPolls.length})`}
+                    {showPollForm ? 'Cancel Poll' : 'Create Poll'}
                   </button>
-                  {showPastPolls && (
-                    <div style={{ marginTop: '0.75rem' }}>
-                      {closedPolls.map((poll) => {
+                </div>
+
+                {/* Poll form */}
+                {showPollForm && (
+                  <div
+                    style={{
+                      border: '1px solid #eee',
+                      borderRadius: '4px',
+                      padding: '0.75rem',
+                      marginBottom: '1rem',
+                      backgroundColor: '#fafafa',
+                    }}
+                  >
+                    <h4 style={{ marginTop: 0 }}>New Poll</h4>
+                    <form onSubmit={handleCreatePoll}>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <label
+                          style={{
+                            display: 'block',
+                            marginBottom: '0.25rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          Question
+                        </label>
+                        <input
+                          type="text"
+                          value={pollQuestion}
+                          onChange={(e) => setPollQuestion(e.target.value)}
+                          placeholder="What are you voting on?"
+                          style={{ width: '100%', padding: '0.5rem' }}
+                          required
+                        />
+                      </div>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <label
+                          style={{
+                            display: 'block',
+                            marginBottom: '0.25rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          Options (up to 5)
+                        </label>
+                        {pollOptions.map((opt, idx) => (
+                          <input
+                            key={idx}
+                            type="text"
+                            value={opt}
+                            onChange={(e) => {
+                              const next = [...pollOptions];
+                              next[idx] = e.target.value;
+                              setPollOptions(next);
+                            }}
+                            placeholder={`Option ${idx + 1}`}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              marginBottom: '0.25rem',
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <label
+                          style={{
+                            display: 'block',
+                            marginBottom: '0.25rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          Keep poll open until
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={pollClosesAt}
+                          onChange={(e) => setPollClosesAt(e.target.value)}
+                          style={{ padding: '0.5rem' }}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem' }}
+                      >
+                        Create Poll
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {/* Current poll */}
+                <div style={{ marginBottom: '1rem' }}>
+                  {pollsLoading ? (
+                    <p>Loading polls...</p>
+                  ) : !currentPoll ? null : (
+                    <div>
+                      {(() => {
+                        const poll = currentPoll;
                         const options = (() => {
                           try {
                             const parsed = JSON.parse(poll.options_text || '[]');
@@ -786,20 +742,33 @@ function Groups() {
                           }
                         })();
 
-                        const votesForPoll = pollVotes.filter((v) => v.poll_id === poll.poll_id);
+                        const votesForPoll = pollVotes.filter(
+                          (v) => v.poll_id === poll.poll_id,
+                        );
                         const totalVotes = votesForPoll.length;
+                        const userVote = currentUser
+                          ? votesForPoll.find(
+                              (v) => v.user_id === currentUser.user_id,
+                            ) || null
+                          : null;
+                        const isClosed =
+                          poll.closes_at && new Date(poll.closes_at) <= now;
 
                         let winningOptions = new Set();
                         if (totalVotes > 0) {
                           let maxCount = 0;
                           options.forEach((opt) => {
-                            const count = votesForPoll.filter((v) => v.selected_option === opt).length;
+                            const count = votesForPoll.filter(
+                              (v) => v.selected_option === opt,
+                            ).length;
                             if (count > maxCount) {
                               maxCount = count;
                             }
                           });
                           options.forEach((opt) => {
-                            const count = votesForPoll.filter((v) => v.selected_option === opt).length;
+                            const count = votesForPoll.filter(
+                              (v) => v.selected_option === opt,
+                            ).length;
                             if (count === maxCount && maxCount > 0) {
                               winningOptions.add(opt);
                             }
@@ -814,207 +783,508 @@ function Groups() {
                               borderRadius: '4px',
                               padding: '0.75rem',
                               marginBottom: '0.75rem',
-                              backgroundColor: '#fafafa',
+                              backgroundColor: '#f9f9f9',
                             }}
                           >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                              }}
+                            >
                               <div style={{ fontWeight: 'bold' }}>{poll.question}</div>
                               <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                Closed: {poll.closes_at ? new Date(poll.closes_at).toLocaleString() : 'Unknown'}
+                                {isClosed
+                                  ? 'Poll closed'
+                                  : poll.closes_at
+                                  ? `Closes: ${new Date(
+                                      poll.closes_at,
+                                    ).toLocaleString()}`
+                                  : 'Open poll'}
                               </div>
                             </div>
                             <div style={{ marginTop: '0.5rem' }}>
                               {options.map((opt) => {
-                                const count = votesForPoll.filter((v) => v.selected_option === opt).length;
-                                const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                                const isWinner = winningOptions.has(opt);
+                                const count = votesForPoll.filter(
+                                  (v) => v.selected_option === opt,
+                                ).length;
+                                const pct =
+                                  totalVotes > 0
+                                    ? Math.round((count / totalVotes) * 100)
+                                    : 0;
+                                const disabled = isClosed || !!userVote;
+                                const isWinner =
+                                  isClosed && winningOptions.has(opt);
 
                                 return (
-                                  <div key={opt} style={{ marginBottom: '0.35rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                                      <span style={{ fontWeight: isWinner ? 'bold' : 'normal' }}>{opt}</span>
-                                      <span style={{ fontSize: '0.8rem', color: '#555' }}>
-                                        {count} vote{count !== 1 ? 's' : ''} ({pct}%)
-                                      </span>
-                                    </div>
-                                    <div
+                                  <div
+                                    key={opt}
+                                    style={{ marginBottom: '0.35rem' }}
+                                  >
+                                    <button
+                                      type="button"
+                                      disabled={disabled}
+                                      onClick={() =>
+                                        handleVoteOnPoll(poll.poll_id, opt)
+                                      }
                                       style={{
-                                        marginTop: '0.25rem',
-                                        height: '6px',
-                                        borderRadius: '3px',
-                                        backgroundColor: '#eee',
+                                        width: '100%',
+                                        textAlign: 'left',
+                                        padding: '0.35rem 0.5rem',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        backgroundColor:
+                                          disabled &&
+                                          userVote?.selected_option === opt
+                                            ? '#e3f2fd'
+                                            : '#ffffff',
+                                        cursor: disabled ? 'default' : 'pointer',
+                                        fontSize: '0.85rem',
                                       }}
                                     >
                                       <div
                                         style={{
-                                          width: `${pct}%`,
-                                          height: '100%',
-                                          borderRadius: '3px',
-                                          backgroundColor: '#1976d2',
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
                                         }}
-                                      />
-                                    </div>
+                                      >
+                                        <span
+                                          style={{
+                                            fontWeight: isWinner
+                                              ? 'bold'
+                                              : 'normal',
+                                          }}
+                                        >
+                                          {opt}
+                                        </span>
+                                        <span
+                                          style={{
+                                            fontSize: '0.8rem',
+                                            color: '#555',
+                                          }}
+                                        >
+                                          {count} vote{count !== 1 ? 's' : ''} (
+                                          {pct}%)
+                                        </span>
+                                      </div>
+                                      <div
+                                        style={{
+                                          marginTop: '0.25rem',
+                                          height: '6px',
+                                          borderRadius: '3px',
+                                          backgroundColor: '#eee',
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: `${pct}%`,
+                                            height: '100%',
+                                            borderRadius: '3px',
+                                            backgroundColor: isWinner
+                                              ? '#2e7d32'
+                                              : '#1976d2',
+                                          }}
+                                        />
+                                      </div>
+                                    </button>
                                   </div>
                                 );
                               })}
-                              <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#777' }}>
+                              <div
+                                style={{
+                                  marginTop: '0.25rem',
+                                  fontSize: '0.75rem',
+                                  color: '#777',
+                                }}
+                              >
                                 Total votes: {totalVotes}
                               </div>
                             </div>
                           </div>
                         );
-                      })}
+                      })()}
                     </div>
                   )}
                 </div>
-              )}
-              {(() => {
-                const pinnedMessages = messages
-                  .filter((m) => m.is_pinned)
-                  .sort((a, b) => new Date(b.pinned_at || b.created_at) - new Date(a.pinned_at || a.created_at));
-                const regularMessages = messages
-                  .filter((m) => !m.is_pinned)
-                  .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-                const renderMessage = (msg, { showPinnedBadge }) => {
-                  const canPinOrUnpin =
-                    (currentUser && msg.user_id === currentUser.user_id) || isGroupOwner;
-                  return (
-                    <div key={msg.message_id} style={{ marginTop: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {profilesById[msg.user_id]?.profile_photo_url && (
-                          <img
-                            src={profilesById[msg.user_id].profile_photo_url}
-                            alt="avatar"
-                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        )}
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <strong style={{ fontSize: '0.9rem' }}>
-                              {profilesById[msg.user_id]?.display_name || 'Unknown User'}
-                            </strong>
-                            <span style={{ fontSize: '0.75rem', color: '#777' }}>
-                              {new Date(msg.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                          {showPinnedBadge && (
-                            <span
-                              style={{
-                                display: 'inline-block',
-                                marginTop: '0.15rem',
-                                marginBottom: '0.15rem',
-                                padding: '0.1rem 0.4rem',
-                                fontSize: '0.7rem',
-                                borderRadius: '999px',
-                                backgroundColor: '#fff3cd',
-                                color: '#856404',
-                                border: '1px solid #ffeeba',
-                              }}
-                            >
-                              Pinned
-                            </span>
-                          )}
-                          <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>{msg.body}</p>
-                        </div>
-                      </div>
-                      {canPinOrUnpin && (
-                        <div style={{ marginLeft: '2.25rem', marginTop: '0.25rem' }}>
-                          {msg.is_pinned ? (
-                            <button
-                              type="button"
-                              onClick={() => handleUnpinMessage(msg)}
-                              style={{
-                                padding: '0.15rem 0.4rem',
-                                fontSize: '0.7rem',
-                                borderRadius: '4px',
-                                border: '1px solid #c62828',
-                                backgroundColor: '#ffebee',
-                                color: '#c62828',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Unpin
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handlePinMessage(msg)}
-                              style={{
-                                padding: '0.15rem 0.4rem',
-                                fontSize: '0.7rem',
-                                borderRadius: '4px',
-                                border: '1px solid #1976d2',
-                                backgroundColor: '#e3f2fd',
-                                color: '#1976d2',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Pin
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                };
+                {/* Past polls */}
+                {closedPolls.length > 0 && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowPastPolls((prev) => !prev)}
+                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
+                    >
+                      {showPastPolls
+                        ? `Hide Past Polls (${closedPolls.length})`
+                        : `Show Past Polls (${closedPolls.length})`}
+                    </button>
+                    {showPastPolls && (
+                      <div style={{ marginTop: '0.75rem' }}>
+                        {closedPolls.map((poll) => {
+                          const options = (() => {
+                            try {
+                              const parsed = JSON.parse(poll.options_text || '[]');
+                              return Array.isArray(parsed) ? parsed : [];
+                            } catch {
+                              return [];
+                            }
+                          })();
 
-                return (
-                  <>
-                    {pinnedMessages.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: '1rem',
-                          paddingBottom: '0.5rem',
-                          marginBottom: '0.75rem',
-                          borderTop: '1px solid #eee',
-                          borderBottom: '1px dashed #ddd',
-                        }}
-                      >
-                        <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#555' }}>
-                          Pinned announcements
-                        </div>
-                        {pinnedMessages.map((msg) => renderMessage(msg, { showPinnedBadge: true }))}
+                          const votesForPoll = pollVotes.filter(
+                            (v) => v.poll_id === poll.poll_id,
+                          );
+                          const totalVotes = votesForPoll.length;
+
+                          let winningOptions = new Set();
+                          if (totalVotes > 0) {
+                            let maxCount = 0;
+                            options.forEach((opt) => {
+                              const count = votesForPoll.filter(
+                                (v) => v.selected_option === opt,
+                              ).length;
+                              if (count > maxCount) {
+                                maxCount = count;
+                              }
+                            });
+                            options.forEach((opt) => {
+                              const count = votesForPoll.filter(
+                                (v) => v.selected_option === opt,
+                              ).length;
+                              if (count === maxCount && maxCount > 0) {
+                                winningOptions.add(opt);
+                              }
+                            });
+                          }
+
+                          return (
+                            <div
+                              key={poll.poll_id}
+                              style={{
+                                border: '1px solid #eee',
+                                borderRadius: '4px',
+                                padding: '0.75rem',
+                                marginBottom: '0.75rem',
+                                backgroundColor: '#fafafa',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                <div style={{ fontWeight: 'bold' }}>
+                                  {poll.question}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                  Closed:{' '}
+                                  {poll.closes_at
+                                    ? new Date(
+                                        poll.closes_at,
+                                      ).toLocaleString()
+                                    : 'Unknown'}
+                                </div>
+                              </div>
+                              <div style={{ marginTop: '0.5rem' }}>
+                                {options.map((opt) => {
+                                  const count = votesForPoll.filter(
+                                    (v) => v.selected_option === opt,
+                                  ).length;
+                                  const pct =
+                                    totalVotes > 0
+                                      ? Math.round((count / totalVotes) * 100)
+                                      : 0;
+                                  const isWinner = winningOptions.has(opt);
+
+                                  return (
+                                    <div
+                                      key={opt}
+                                      style={{ marginBottom: '0.35rem' }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          fontSize: '0.85rem',
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            fontWeight: isWinner
+                                              ? 'bold'
+                                              : 'normal',
+                                          }}
+                                        >
+                                          {opt}
+                                        </span>
+                                        <span
+                                          style={{
+                                            fontSize: '0.8rem',
+                                            color: '#555',
+                                          }}
+                                        >
+                                          {count} vote{count !== 1 ? 's' : ''} (
+                                          {pct}%)
+                                        </span>
+                                      </div>
+                                      <div
+                                        style={{
+                                          marginTop: '0.25rem',
+                                          height: '6px',
+                                          borderRadius: '3px',
+                                          backgroundColor: '#eee',
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: `${pct}%`,
+                                            height: '100%',
+                                            borderRadius: '3px',
+                                            backgroundColor: '#1976d2',
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                <div
+                                  style={{
+                                    marginTop: '0.25rem',
+                                    fontSize: '0.75rem',
+                                    color: '#777',
+                                  }}
+                                >
+                                  Total votes: {totalVotes}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
+                  </div>
+                )}
 
-                    <div
-                      style={{
-                        maxHeight: '300px',
-                        overflowY: 'auto',
-                        paddingRight: '0.5rem',
-                        borderTop: pinnedMessages.length === 0 ? '1px solid #eee' : 'none',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
-                      {messagesLoading ? (
-                        <p>Loading messages...</p>
-                      ) : regularMessages.length === 0 ? (
-                        <p>No messages yet. Start the conversation!</p>
-                      ) : (
-                        <div>
-                          {regularMessages.map((msg) =>
-                            renderMessage(msg, { showPinnedBadge: false }),
+                {/* Messages list with pinned section */}
+                {(() => {
+                  const pinnedMessages = messages
+                    .filter((m) => m.is_pinned)
+                    .sort(
+                      (a, b) =>
+                        new Date(b.pinned_at || b.created_at) -
+                        new Date(a.pinned_at || a.created_at),
+                    );
+                  const regularMessages = messages
+                    .filter((m) => !m.is_pinned)
+                    .sort(
+                      (a, b) =>
+                        new Date(a.created_at) - new Date(b.created_at),
+                    );
+
+                  const renderMessage = (msg, { showPinnedBadge }) => {
+                    const canPinOrUnpin =
+                      (currentUser && msg.user_id === currentUser.user_id) ||
+                      isGroupOwner;
+                    return (
+                      <div
+                        key={msg.message_id}
+                        style={{ marginTop: '0.75rem' }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          {profilesById[msg.user_id]?.profile_photo_url && (
+                            <img
+                              src={profilesById[msg.user_id].profile_photo_url}
+                              alt="avatar"
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          )}
+                          <div style={{ flex: 1 }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'baseline',
+                              }}
+                            >
+                              <strong style={{ fontSize: '0.9rem' }}>
+                                {profilesById[msg.user_id]?.display_name ||
+                                  'Unknown User'}
+                              </strong>
+                              <span
+                                style={{
+                                  fontSize: '0.75rem',
+                                  color: '#777',
+                                }}
+                              >
+                                {new Date(msg.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                            {showPinnedBadge && (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  marginTop: '0.15rem',
+                                  marginBottom: '0.15rem',
+                                  padding: '0.1rem 0.4rem',
+                                  fontSize: '0.7rem',
+                                  borderRadius: '999px',
+                                  backgroundColor: '#fff3cd',
+                                  color: '#856404',
+                                  border: '1px solid #ffeeba',
+                                }}
+                              >
+                                Pinned
+                              </span>
+                            )}
+                            <p
+                              style={{
+                                margin: '0.25rem 0',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              {msg.body}
+                            </p>
+                          </div>
+                        </div>
+                        {canPinOrUnpin && (
+                          <div
+                            style={{
+                              marginLeft: '2.25rem',
+                              marginTop: '0.25rem',
+                            }}
+                          >
+                            {msg.is_pinned ? (
+                              <button
+                                type="button"
+                                onClick={() => handleUnpinMessage(msg)}
+                                style={{
+                                  padding: '0.15rem 0.4rem',
+                                  fontSize: '0.7rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #c62828',
+                                  backgroundColor: '#ffebee',
+                                  color: '#c62828',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Unpin
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handlePinMessage(msg)}
+                                style={{
+                                  padding: '0.15rem 0.4rem',
+                                  fontSize: '0.7rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #1976d2',
+                                  backgroundColor: '#e3f2fd',
+                                  color: '#1976d2',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Pin
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <>
+                      {pinnedMessages.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: '1rem',
+                            paddingBottom: '0.5rem',
+                            marginBottom: '0.75rem',
+                            borderTop: '1px solid #eee',
+                            borderBottom: '1px dashed #ddd',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: '0.8rem',
+                              fontWeight: 'bold',
+                              color: '#555',
+                            }}
+                          >
+                            Pinned announcements
+                          </div>
+                          {pinnedMessages.map((msg) =>
+                            renderMessage(msg, { showPinnedBadge: true }),
                           )}
                         </div>
                       )}
-                    </div>
-                  </>
-                );
-              })()}
 
-              <form onSubmit={handleSendMessage} style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={newMessageBody}
-                  onChange={(e) => setNewMessageBody(e.target.value)}
-                  placeholder="Type a message..."
-                  style={{ flex: 1, padding: '0.5rem' }}
-                />
-                <button type="submit" style={{ padding: '0.5rem 1rem' }}>Send</button>
-              </form>
-            </div>
-          )}
+                      <div
+                        style={{
+                          maxHeight: '300px',
+                          overflowY: 'auto',
+                          paddingRight: '0.5rem',
+                          borderTop:
+                            pinnedMessages.length === 0
+                              ? '1px solid #eee'
+                              : 'none',
+                          borderBottom: '1px solid #eee',
+                        }}
+                      >
+                        {messagesLoading ? (
+                          <p>Loading messages...</p>
+                        ) : regularMessages.length === 0 ? (
+                          <p>No messages yet. Start the conversation!</p>
+                        ) : (
+                          <div>
+                            {regularMessages.map((msg) =>
+                              renderMessage(msg, { showPinnedBadge: false }),
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+
+                {/* Message input */}
+                <form
+                  onSubmit={handleSendMessage}
+                  style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}
+                >
+                  <input
+                    type="text"
+                    value={newMessageBody}
+                    onChange={(e) => setNewMessageBody(e.target.value)}
+                    placeholder="Type a message..."
+                    style={{ flex: 1, padding: '0.5rem' }}
+                  />
+                  <button
+                    type="submit"
+                    style={{ padding: '0.5rem 1rem' }}
+                  >
+                    Send
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
