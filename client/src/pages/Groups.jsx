@@ -773,134 +773,140 @@ function Groups() {
                   )}
                 </div>
               )}
-              <div
-                style={{
-                  marginTop: '1rem',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  paddingRight: '0.5rem',
-                  borderTop: '1px solid #eee',
-                  borderBottom: '1px solid #eee',
-                }}
-              >
-                {messagesLoading ? (
-                  <p>Loading messages...</p>
-                ) : messages.length === 0 ? (
-                  <p>No messages yet. Start the conversation!</p>
-                ) : (
-                  <div>
-                    {(() => {
-                      const pinnedMessages = messages
-                        .filter((m) => m.is_pinned)
-                        .sort((a, b) => new Date(b.pinned_at || b.created_at) - new Date(a.pinned_at || a.created_at));
-                      const regularMessages = messages
-                        .filter((m) => !m.is_pinned)
-                        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+              {(() => {
+                const pinnedMessages = messages
+                  .filter((m) => m.is_pinned)
+                  .sort((a, b) => new Date(b.pinned_at || b.created_at) - new Date(a.pinned_at || a.created_at));
+                const regularMessages = messages
+                  .filter((m) => !m.is_pinned)
+                  .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-                      const renderMessage = (msg, { showPinnedBadge }) => {
-                        const canPinOrUnpin =
-                          (currentUser && msg.user_id === currentUser.user_id) || isGroupOwner;
-                        return (
-                          <div key={msg.message_id} style={{ marginTop: '0.75rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {profilesById[msg.user_id]?.profile_photo_url && (
-                                <img
-                                  src={profilesById[msg.user_id].profile_photo_url}
-                                  alt="avatar"
-                                  style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
-                                />
-                              )}
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                      {profilesById[msg.user_id]?.display_name || profilesById[msg.user_id]?.email || 'Unknown user'}
-                                    </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>
-                                      {new Date(msg.created_at).toLocaleString()}
-                                    </div>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                    {showPinnedBadge && (
-                                      <span
-                                        style={{
-                                          padding: '0.15rem 0.4rem',
-                                          borderRadius: '999px',
-                                          backgroundColor: '#e3f2fd',
-                                          color: '#1976d2',
-                                          fontSize: '0.7rem',
-                                          fontWeight: 'bold',
-                                        }}
-                                      >
-                                        Pinned
-                                      </span>
-                                    )}
-                                    {canPinOrUnpin && (
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          msg.is_pinned
-                                            ? handleUnpinMessage(msg)
-                                            : handlePinMessage(msg)
-                                        }
-                                        style={{
-                                          padding: '0.15rem 0.4rem',
-                                          borderRadius: '4px',
-                                          border: '1px solid #ccc',
-                                          backgroundColor: '#ffffff',
-                                          cursor: 'pointer',
-                                          fontSize: '0.7rem',
-                                        }}
-                                      >
-                                        {msg.is_pinned ? 'Unpin' : 'Pin'}
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div style={{
-                              marginTop: '0.25rem',
-                              padding: '0.5rem 0.75rem',
-                              backgroundColor: '#f5f5f5',
-                              borderRadius: '4px',
-                            }}>
-                              {msg.body}
-                            </div>
+                const renderMessage = (msg, { showPinnedBadge }) => {
+                  const canPinOrUnpin =
+                    (currentUser && msg.user_id === currentUser.user_id) || isGroupOwner;
+                  return (
+                    <div key={msg.message_id} style={{ marginTop: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {profilesById[msg.user_id]?.profile_photo_url && (
+                          <img
+                            src={profilesById[msg.user_id].profile_photo_url}
+                            alt="avatar"
+                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <strong style={{ fontSize: '0.9rem' }}>
+                              {profilesById[msg.user_id]?.display_name || 'Unknown User'}
+                            </strong>
+                            <span style={{ fontSize: '0.75rem', color: '#777' }}>
+                              {new Date(msg.created_at).toLocaleString()}
+                            </span>
                           </div>
-                        );
-                      };
-
-                      return (
-                        <>
-                          {pinnedMessages.length > 0 && (
-                            <div
+                          {showPinnedBadge && (
+                            <span
                               style={{
-                                marginBottom: '0.75rem',
-                                paddingBottom: '0.5rem',
-                                borderBottom: '1px dashed #ddd',
+                                display: 'inline-block',
+                                marginTop: '0.15rem',
+                                marginBottom: '0.15rem',
+                                padding: '0.1rem 0.4rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '999px',
+                                backgroundColor: '#fff3cd',
+                                color: '#856404',
+                                border: '1px solid #ffeeba',
                               }}
                             >
-                              <div
-                                style={{
-                                  fontSize: '0.8rem',
-                                  fontWeight: 'bold',
-                                  color: '#555',
-                                  marginBottom: '0.25rem',
-                                }}
-                              >
-                                Pinned announcements
-                              </div>
-                              {pinnedMessages.map((msg) => renderMessage(msg, { showPinnedBadge: true }))}
-                            </div>
+                              Pinned
+                            </span>
                           )}
-                          {regularMessages.map((msg) => renderMessage(msg, { showPinnedBadge: false }))}
-                        </>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
+                          <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>{msg.body}</p>
+                        </div>
+                      </div>
+                      {canPinOrUnpin && (
+                        <div style={{ marginLeft: '2.25rem', marginTop: '0.25rem' }}>
+                          {msg.is_pinned ? (
+                            <button
+                              type="button"
+                              onClick={() => handleUnpinMessage(msg)}
+                              style={{
+                                padding: '0.15rem 0.4rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '4px',
+                                border: '1px solid #c62828',
+                                backgroundColor: '#ffebee',
+                                color: '#c62828',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Unpin
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handlePinMessage(msg)}
+                              style={{
+                                padding: '0.15rem 0.4rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '4px',
+                                border: '1px solid #1976d2',
+                                backgroundColor: '#e3f2fd',
+                                color: '#1976d2',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Pin
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                };
+
+                return (
+                  <>
+                    {pinnedMessages.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: '1rem',
+                          paddingBottom: '0.5rem',
+                          marginBottom: '0.75rem',
+                          borderTop: '1px solid #eee',
+                          borderBottom: '1px dashed #ddd',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#555' }}>
+                          Pinned announcements
+                        </div>
+                        {pinnedMessages.map((msg) => renderMessage(msg, { showPinnedBadge: true }))}
+                      </div>
+                    )}
+
+                    <div
+                      style={{
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                        paddingRight: '0.5rem',
+                        borderTop: pinnedMessages.length === 0 ? '1px solid #eee' : 'none',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      {messagesLoading ? (
+                        <p>Loading messages...</p>
+                      ) : regularMessages.length === 0 ? (
+                        <p>No messages yet. Start the conversation!</p>
+                      ) : (
+                        <div>
+                          {regularMessages.map((msg) =>
+                            renderMessage(msg, { showPinnedBadge: false }),
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
 
               <form onSubmit={handleSendMessage} style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                 <input

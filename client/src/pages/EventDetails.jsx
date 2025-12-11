@@ -11,6 +11,7 @@ function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rsvpMessage, setRsvpMessage] = useState('');
+  const [userRsvp, setUserRsvp] = useState(null);
   const [currentUser] = useState(() => {
     try {
       const raw = localStorage.getItem('currentUser');
@@ -28,6 +29,8 @@ function EventDetails() {
         setLoading(true);
         const response = await eventsAPI.getById(eventId);
         setEvent(response.data);
+
+        // Load vote summary and the current user's vote
         try {
           const votesResponse = await eventVotesAPI.getForEvent(eventId);
           let up = 0;
@@ -45,6 +48,22 @@ function EventDetails() {
         } catch (voteErr) {
           console.error('Failed to load event vote summary', voteErr);
         }
+
+        // Load the current user's RSVP for this event (if any)
+        try {
+          if (currentUser) {
+            const rsvpsResponse = await rsvpsAPI.getForUser(currentUser.user_id);
+            const existing = (rsvpsResponse.data || []).find(
+              (r) => r.event_id === eventId,
+            );
+            setUserRsvp(existing || null);
+          } else {
+            setUserRsvp(null);
+          }
+        } catch (rsvpErr) {
+          console.error('Failed to load RSVP for event', rsvpErr);
+        }
+
         setError(null);
       } catch (err) {
         setError('Failed to load event: ' + err.message);
@@ -65,14 +84,24 @@ function EventDetails() {
     }
 
     try {
-      await rsvpsAPI.create({
-        event_id: event.event_id,
-        user_id: currentUser.user_id,
-        name_at_rsvp: currentUser.display_name || null,
-        email_at_rsvp: currentUser.email || null,
-        status: 'going',
-      });
-      setRsvpMessage('RSVP successful!');
+      // Toggle behavior: if an RSVP already exists for this user and event,
+      // delete it. Otherwise, create a new RSVP.
+      if (userRsvp && userRsvp.rsvp_id) {
+        await rsvpsAPI.delete(userRsvp.rsvp_id);
+        setUserRsvp(null);
+        setRsvpMessage('RSVP removed.');
+      } else {
+        const createResponse = await rsvpsAPI.create({
+          event_id: event.event_id,
+          user_id: currentUser.user_id,
+          name_at_rsvp: currentUser.display_name || null,
+          email_at_rsvp: currentUser.email || null,
+          status: 'going',
+        });
+        const created = createResponse.data || createResponse;
+        setUserRsvp(created || null);
+        setRsvpMessage('RSVP successful!');
+      }
     } catch (err) {
       setRsvpMessage('Failed to RSVP: ' + err.message);
     }
@@ -158,6 +187,7 @@ function EventDetails() {
   const dateString = start.toLocaleDateString();
   const timeString = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const isOwner = currentUser && currentUser.user_id === event.host_user_id;
+  const hasRsvped = !!userRsvp;
 
   return (
     <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
@@ -288,13 +318,13 @@ function EventDetails() {
             padding: '0.5rem 1.25rem',
             borderRadius: '4px',
             border: 'none',
-            backgroundColor: '#1976d2',
+            backgroundColor: hasRsvped ? '#2e7d32' : '#1976d2',
             color: '#fff',
             cursor: 'pointer',
             fontWeight: 'bold',
           }}
         >
-          RSVP
+          {hasRsvped ? "RSVP'd" : 'RSVP'}
         </button>
         {rsvpMessage && (
           <p style={{ marginTop: '0.75rem', color: rsvpMessage.startsWith('Failed') ? '#c62828' : '#2e7d32' }}>

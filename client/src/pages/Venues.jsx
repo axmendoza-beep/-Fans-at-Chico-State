@@ -14,7 +14,8 @@ function Venues() {
     parking_notes: '',
     atmosphere_rating: 3,
     latitude: '',
-    longitude: ''
+    longitude: '',
+    capacity: ''
   });
   const [editingVenueId, setEditingVenueId] = useState(null);
   const [currentUser] = useState(() => {
@@ -97,7 +98,8 @@ function Venues() {
         parking_notes: '',
         atmosphere_rating: 3,
         latitude: '',
-        longitude: ''
+        longitude: '',
+        capacity: ''
       });
       fetchVenues();
     } catch (err) {
@@ -125,6 +127,7 @@ function Venues() {
       atmosphere_rating: venue.atmosphere_rating || 3,
       latitude: venue.latitude || '',
       longitude: venue.longitude || '',
+      capacity: venue.capacity || '',
     });
   };
 
@@ -168,7 +171,8 @@ function Venues() {
             parking_notes: '',
             atmosphere_rating: 3,
             latitude: '',
-            longitude: ''
+            longitude: '',
+            capacity: ''
           });
         }}
       >
@@ -235,6 +239,16 @@ function Venues() {
                 onChange={(e) => setNewVenue({ ...newVenue, atmosphere_rating: parseInt(e.target.value) })}
               />
             </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Capacity (optional):</label><br />
+              <input
+                type="number"
+                min="1"
+                value={newVenue.capacity}
+                onChange={(e) => setNewVenue({ ...newVenue, capacity: e.target.value ? parseInt(e.target.value, 10) : '' })}
+                placeholder="How many people can this venue hold?"
+              />
+            </div>
             <button type="submit">{editingVenueId ? 'Save Changes' : 'Add Venue'}</button>
           </form>
         </div>
@@ -263,6 +277,7 @@ function Venues() {
                   <p><strong>Food Options:</strong> {venue.food_options || 'None listed'}</p>
                   <p><strong>Parking:</strong> {venue.parking_notes || 'No info'}</p>
                   <p><strong>Atmosphere:</strong> {'⭐'.repeat(venue.atmosphere_rating || 0)}</p>
+                  <p><strong>Capacity:</strong> {venue.capacity ?? 'Not specified'}</p>
                   {isOwner && (
                     <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                       <button

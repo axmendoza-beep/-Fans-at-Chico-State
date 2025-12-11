@@ -15,7 +15,8 @@ function Events() {
     game_name: '',
     start_time: '',
     description: '',
-    venue_id: ''
+    venue_id: '',
+    capacity: ''
   });
   const [eventsTab, setEventsTab] = useState('all'); // 'all' | 'trending'
   const [createError, setCreateError] = useState(null);
@@ -163,7 +164,8 @@ function Events() {
         game_name: '',
         start_time: '',
         description: '',
-        venue_id: ''
+        venue_id: '',
+        capacity: ''
       });
       fetchEvents();
     } catch (err) {
@@ -188,6 +190,7 @@ function Events() {
         : '',
       description: event.description || '',
       venue_id: event.venue_id || '',
+      capacity: event.capacity ?? '',
     });
   };
 
@@ -341,7 +344,8 @@ function Events() {
           game_name: '',
           start_time: '',
           description: '',
-          venue_id: ''
+          venue_id: '',
+          capacity: ''
         });
       }}>
         {showCreateForm ? 'Cancel' : 'Create New Event'}
@@ -400,7 +404,18 @@ function Events() {
               <label>Venue:</label><br />
               <select
                 value={newEvent.venue_id}
-                onChange={(e) => setNewEvent({ ...newEvent, venue_id: e.target.value })}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedVenue = venues.find((v) => v.venue_id === selectedId);
+                  setNewEvent({
+                    ...newEvent,
+                    venue_id: selectedId,
+                    // If the venue has a capacity, default the event capacity to match.
+                    capacity: selectedVenue && selectedVenue.capacity != null
+                      ? selectedVenue.capacity
+                      : newEvent.capacity,
+                  });
+                }}
                 style={{ minWidth: '250px' }}
               >
                 <option value="">Select a venue (optional)</option>
@@ -424,6 +439,22 @@ function Events() {
                 placeholder="Select a venue above or paste a Venue ID"
                 required
               />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Capacity (optional):</label><br />
+              <input
+                type="number"
+                min="1"
+                value={newEvent.capacity}
+                onChange={(e) => setNewEvent({
+                  ...newEvent,
+                  capacity: e.target.value ? parseInt(e.target.value, 10) : '',
+                })}
+                placeholder="How many people can attend this event?"
+              />
+              <small style={{ display: 'block', marginTop: '0.25rem', color: '#666' }}>
+                If a venue with a capacity is selected, that value will be used here by default.
+              </small>
             </div>
             <button type="submit">{editingEventId ? 'Save Changes' : 'Create Event'}</button>
           </form>

@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.venues (
   parking_notes text,
   atmosphere_rating smallint CHECK (atmosphere_rating >= 1 AND atmosphere_rating <= 5),
   proximity_notes text,
+  capacity integer,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -102,6 +103,7 @@ CREATE TABLE IF NOT EXISTS public.events (
   game_name text NOT NULL,
   start_time timestamptz NOT NULL,
   description text,
+  capacity integer,
   food_drinks text,
   is_twentyone_plus boolean NOT NULL DEFAULT false,
   visibility app_event_visibility NOT NULL DEFAULT 'public',

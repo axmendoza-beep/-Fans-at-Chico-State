@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
       .from('events')
       .select(`
         *,
-        venue:venues(venue_id, name, type, address),
+        venue:venues(venue_id, name, type, address, capacity),
         host:profiles!events_host_user_id_fkey(user_id, display_name, email)
       `)
       .order('start_time', { ascending: true });
@@ -89,7 +89,7 @@ router.get('/:event_id', async (req, res) => {
       .from('events')
       .select(`
         *,
-        venue:venues(venue_id, name, type, address),
+        venue:venues(venue_id, name, type, address, capacity),
         host:profiles!events_host_user_id_fkey(user_id, display_name, email)
       `)
       .eq('event_id', event_id)
