@@ -156,6 +156,46 @@ function Groups() {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!selectedGroupId || !currentUser || !currentUser.user_id) {
+      navigate('/login');
+      return;
+    }
+
+    const membership = memberships.find(
+      (m) => m.group_id === selectedGroupId && m.user_id === currentUser.user_id,
+    );
+
+    if (!membership || membership.role !== 'owner') {
+      return;
+    }
+
+    const confirmed = window.confirm('Delete this group for all members? This cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      await groupsAPI.delete(selectedGroupId);
+
+      const nextGroups = groups.filter((g) => g.group_id !== selectedGroupId);
+      const nextMemberships = memberships.filter((m) => m.group_id !== selectedGroupId);
+
+      setGroups(nextGroups);
+      setMemberships(nextMemberships);
+
+      const nextJoinedIds = new Set(nextMemberships.map((m) => m.group_id));
+      const nextSelectedId = nextJoinedIds.size > 0 ? Array.from(nextJoinedIds)[0] : null;
+
+      setSelectedGroupId(nextSelectedId);
+      if (!nextSelectedId) {
+        setMessages([]);
+        setPolls([]);
+        setPollVotes([]);
+      }
+    } catch (err) {
+      alert('Failed to delete group: ' + err.message);
+    }
+  };
+
   const loadMessagesForGroup = async (groupId) => {
     if (!groupId) {
       setMessages([]);
@@ -504,8 +544,30 @@ function Groups() {
             <p>Select a group from your list to view its chat.</p>
           ) : (
             <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '1rem', minHeight: '300px' }}>
-              <h3 style={{ marginTop: 0 }}>{selectedGroup.name}</h3>
-              <p style={{ marginTop: 0, fontSize: '0.9rem', color: '#555' }}>{selectedGroup.description || 'No description yet.'}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div>
+                  <h3 style={{ marginTop: 0 }}>{selectedGroup.name}</h3>
+                  <p style={{ marginTop: 0, fontSize: '0.9rem', color: '#555' }}>{selectedGroup.description || 'No description yet.'}</p>
+                </div>
+                {isGroupOwner && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteGroup}
+                    style={{
+                      padding: '0.3rem 0.6rem',
+                      borderRadius: '4px',
+                      border: '1px solid #b71c1c',
+                      backgroundColor: '#ffebee',
+                      color: '#b71c1c',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      height: 'fit-content',
+                    }}
+                  >
+                    Delete Group
+                  </button>
+                )}
+              </div>
               <div style={{ marginTop: '0.5rem', marginBottom: '0.75rem' }}>
                 <button
                   type="button"
