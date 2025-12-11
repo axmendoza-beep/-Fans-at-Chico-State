@@ -32,7 +32,7 @@ function Home() {
             Chico State
           </span>
           <img
-            src="/chico-logo.png"
+            src="client/public/chico-logo.png"
             alt="Chico State logo"
             style={{ height: '40px', width: '40px', objectFit: 'contain' }}
           />
