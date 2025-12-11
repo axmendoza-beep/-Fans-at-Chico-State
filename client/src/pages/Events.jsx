@@ -14,7 +14,6 @@ function Events() {
     game_name: '',
     start_time: '',
     description: '',
-    host_email: '',
     venue_id: ''
   });
   const [createError, setCreateError] = useState(null);
@@ -89,24 +88,33 @@ function Events() {
     e.preventDefault();
     setCreateError(null);
 
-    const email = newEvent.host_email.trim();
-    if (!email) {
-      setCreateError('Host email is required.');
+    // Require a logged-in user to create or edit events.
+    if (!currentUser || !currentUser.email) {
+      setCreateError('You must be signed in to create or edit events.');
+      navigate('/login');
       return;
     }
 
+    const email = currentUser.email.trim();
+
+    // Enforce that the host is a Chico State email.
     if (!email.toLowerCase().endsWith('@mail.csuchico.edu')) {
-      setCreateError('Please use a valid Chico State email ending in @mail.csuchico.edu for the host.');
+      setCreateError('Your account must use a Chico State email ending in @mail.csuchico.edu to host events.');
       return;
     }
 
     try {
       if (editingEventId) {
-        const { host_email, ...updatePayload } = newEvent;
+        const { /* host_email, */ ...updatePayload } = newEvent;
         await eventsAPI.update(editingEventId, updatePayload);
         alert('Event updated successfully!');
       } else {
-        await eventsAPI.create(newEvent);
+        // Pass the logged-in user's email as host_email so the backend
+        // can resolve it to host_user_id.
+        await eventsAPI.create({
+          ...newEvent,
+          host_email: email,
+        });
         alert('Event created successfully!');
       }
       setShowCreateForm(false);
@@ -116,7 +124,6 @@ function Events() {
         game_name: '',
         start_time: '',
         description: '',
-        host_email: '',
         venue_id: ''
       });
       fetchEvents();
@@ -141,7 +148,6 @@ function Events() {
         ? new Date(event.start_time).toISOString().slice(0, 16)
         : '',
       description: event.description || '',
-      host_email: event.host?.email || '',
       venue_id: event.venue_id || '',
     });
   };
@@ -246,7 +252,6 @@ function Events() {
           game_name: '',
           start_time: '',
           description: '',
-          host_email: '',
           venue_id: ''
         });
       }}>
@@ -300,16 +305,6 @@ function Events() {
               <textarea
                 value={newEvent.description}
                 onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Host Email (Chico State):</label><br />
-              <input
-                type="email"
-                value={newEvent.host_email}
-                onChange={(e) => setNewEvent({ ...newEvent, host_email: e.target.value })}
-                placeholder="you@mail.csuchico.edu"
-                required
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>

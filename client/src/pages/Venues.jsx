@@ -49,12 +49,16 @@ function Venues() {
       let latitude = newVenue.latitude;
       let longitude = newVenue.longitude;
 
-      // If Google Maps is available and we have an address, try to geocode it
+      // If Google Maps is available and we have an address, try to geocode it.
+      // Users only enter the street address; we assume Chico, CA as the city.
       if (window.google && window.google.maps && newVenue.address && (!latitude || !longitude)) {
         const geocoder = new window.google.maps.Geocoder();
 
+        // Always treat the address as being in Chico, CA for this app.
+        const fullAddress = `${newVenue.address}, Chico, CA`;
+
         const geocodeResult = await new Promise((resolve, reject) => {
-          geocoder.geocode({ address: newVenue.address }, (results, status) => {
+          geocoder.geocode({ address: fullAddress }, (results, status) => {
             if (status === 'OK' && results && results[0]) {
               resolve(results[0]);
             } else {
@@ -191,11 +195,12 @@ function Venues() {
               </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Address:</label><br />
+              <label>Street Address (Chico, CA):</label><br />
               <input
                 type="text"
                 value={newVenue.address}
                 onChange={(e) => setNewVenue({ ...newVenue, address: e.target.value })}
+                placeholder="123 Main St"
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
